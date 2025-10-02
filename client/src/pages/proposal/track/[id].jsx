@@ -2,12 +2,68 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../../context/AuthContext';
 import ProtectedRoute from '../../../components/ProtectedRoute';
+import TimelineChart from '../../../components/TimelineChart';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+
+// Custom CSS animations for the track page
+const trackAnimationStyles = `
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideInUp {
+    from { 
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes scaleIn {
+    from { 
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to { 
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  
+  .animate-fadeIn {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+  
+  .animate-slideInUp {
+    animation: slideInUp 0.6s ease-out forwards;
+    animation-fill-mode: both;
+  }
+  
+  .animate-scaleIn {
+    animation: scaleIn 0.5s ease-out forwards;
+  }
+  
+  .animate-pulse-gentle {
+    animation: pulse 2s infinite;
+  }
+`;
 
 function TrackProposalContent() {
   const router = useRouter();
   const { id } = router.query;
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Mock data for coal R&D proposal tracking
   const [proposal] = useState({
@@ -23,12 +79,12 @@ function TrackProposalContent() {
     currentPhase: "Technical Review",
     progress: 65,
     timeline: [
-      { phase: "Proposal Submitted", status: "completed", date: "2025-09-15", description: "Proposal successfully submitted to PRISM portal" },
-      { phase: "Initial Screening", status: "completed", date: "2025-09-16", description: "Automated compliance checks passed" },
-      { phase: "Reviewer Assignment", status: "completed", date: "2025-09-18", description: "Technical experts assigned for evaluation" },
-      { phase: "Technical Review", status: "active", date: "2025-09-20", description: "Currently under detailed technical assessment" },
-      { phase: "Budget Review", status: "pending", date: null, description: "Financial evaluation pending" },
-      { phase: "Final Decision", status: "pending", date: null, description: "Committee decision awaited" }
+      { phase: "Proposal Submitted", status: "completed", date: "2025-09-15", description: "Proposal successfully submitted to AI-powered PRISM portal" },
+      { phase: "AI Initial Screening", status: "completed", date: "2025-09-16", description: "AI system completed automated compliance and quality checks" },
+      { phase: "AI Reviewer Assignment", status: "completed", date: "2025-09-18", description: "AI system automatically assigned expert reviewers based on domain expertise" },
+      { phase: "Expert Technical Review", status: "active", date: "2025-09-20", description: "AI-assigned experts conducting detailed technical assessment" },
+      { phase: "AI-Assisted Budget Analysis", status: "pending", date: null, description: "AI financial evaluation and expert review pending" },
+      { phase: "Final Expert Decision", status: "pending", date: null, description: "Expert committee final decision based on AI recommendations" }
     ],
     milestones: [
       { title: "Technical Documentation Review", completed: true, dueDate: "2025-09-22", completedDate: "2025-09-21" },
@@ -47,10 +103,10 @@ function TrackProposalContent() {
       },
       { 
         type: "ai_suggestion", 
-        actor: "AI Assistant", 
+        actor: "AI System", 
         action: "provided optimization suggestion", 
         timestamp: "2025-09-25 11:15", 
-        details: "Consider adding environmental impact assessment data for the proposed gasification process to strengthen the proposal."
+        details: "AI analysis suggests adding environmental impact assessment data for the proposed gasification process to strengthen the proposal."
       },
       { 
         type: "proposal_edit", 
@@ -61,17 +117,17 @@ function TrackProposalContent() {
       },
       { 
         type: "reviewer_assigned", 
-        actor: "System", 
-        action: "assigned additional reviewer", 
+        actor: "AI System", 
+        action: "auto-assigned expert reviewer", 
         timestamp: "2025-09-24 09:20", 
-        details: "Prof. Sunita Mishra (Coal Chemistry Expert) added to review panel."
+        details: "AI automatically assigned Prof. Sunita Mishra (Coal Chemistry Expert) based on domain expertise matching."
       },
       { 
         type: "milestone_completed", 
-        actor: "System", 
-        action: "milestone completed", 
+        actor: "AI System", 
+        action: "verified milestone completion", 
         timestamp: "2025-09-21 18:00", 
-        details: "Technical Documentation Review milestone completed successfully."
+        details: "AI system verified Technical Documentation Review milestone completion successfully."
       }
     ],
     feedback: [
@@ -103,22 +159,694 @@ function TrackProposalContent() {
   });
 
   useEffect(() => {
-    // Simulate loading for better UX
-    setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 1000);
-    return () => clearTimeout(timer);
+    const fetchProposal = async () => {
+      try {
+        // Simulate API call
+        setTimeout(() => {
+          setLoading(false);
+        }, 1000);
+      } catch (error) {
+        console.error("Error fetching proposal:", error);
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchProposal();
+    }
   }, [id]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-blue-900 font-medium">Loading proposal tracking information...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="text-black text-xl mt-4">Loading proposal tracking...</p>
         </div>
       </div>
     );
   }
+
+  const progressPercentage = proposal.progress;
+  const completedMilestones = proposal.milestones.filter(m => m.completed).length;
+  const totalMilestones = proposal.milestones.length;
+
+  // PDF Export Function
+  const handleExportReport = async () => {
+    setIsExporting(true);
+    
+    try {
+      // Create PDF using jsPDF
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      let yPosition = 10;
+
+      // Helper function to load and add image to PDF
+      const addImageToPDF = (imagePath, x, y, width, height) => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            try {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+              canvas.width = img.width;
+              canvas.height = img.height;
+              ctx.drawImage(img, 0, 0);
+              const imgData = canvas.toDataURL('image/png');
+              pdf.addImage(imgData, 'PNG', x, y, width, height);
+              resolve();
+            } catch (error) {
+              console.warn('Error adding image:', imagePath, error);
+              resolve();
+            }
+          };
+          img.onerror = () => {
+            console.warn('Could not load image:', imagePath);
+            resolve();
+          };
+          img.src = imagePath;
+        });
+      };
+
+      // Official Government Logos Header Section
+      try {
+        // Government of India logo (left)
+        await addImageToPDF('/images/GOI logo.png', 15, yPosition, 25, 15);
+        
+        // Coal India logo (center-left)
+        await addImageToPDF('/images/coal india logo.webp', 45, yPosition, 25, 15);
+        
+        // PRISM logo (center)
+        await addImageToPDF('/images/prism brand logo.png', 85, yPosition, 20, 15);
+        
+        // CMPDI logo (center-right)
+        await addImageToPDF('/images/cmpdi logo.jpg', 115, yPosition, 25, 15);
+        
+        // AI Assistant logo (right)
+        await addImageToPDF('/images/AI assistant logo.png', 150, yPosition, 20, 15);
+        
+      } catch (logoError) {
+        console.warn('Some logos could not be loaded:', logoError);
+      }
+
+      yPosition += 20;
+
+      // Main Header
+      pdf.setFontSize(20);
+      pdf.setTextColor(234, 88, 12); // Orange color
+      pdf.text('PRISM - Proposal Tracking Report', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 8;
+
+      pdf.setFontSize(12);
+      pdf.setTextColor(102, 102, 102);
+      pdf.text('Proposal Review & Innovation Support Mechanism', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 5;
+      pdf.text('Department of Coal - Advanced Research Platform', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 3;
+      pdf.text('Government of India', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 15;
+
+      // Line separator
+      pdf.setDrawColor(234, 88, 12);
+      pdf.line(20, yPosition, pageWidth - 20, yPosition);
+      yPosition += 20;
+
+      // Cover Page Information Box
+      pdf.setDrawColor(234, 88, 12);
+      pdf.setFillColor(255, 247, 237); // Light orange background
+      pdf.roundedRect(20, yPosition, pageWidth - 40, 40, 3, 3, 'FD');
+      
+      yPosition += 8;
+      pdf.setFontSize(14);
+      pdf.setTextColor(234, 88, 12);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('OFFICIAL GOVERNMENT DOCUMENT', pageWidth / 2, yPosition, { align: 'center' });
+      
+      yPosition += 8;
+      pdf.setFontSize(10);
+      pdf.setTextColor(51, 51, 51);
+      pdf.setFont(undefined, 'normal');
+      pdf.text(`Proposal ID: ${proposal.id}`, pageWidth / 2, yPosition, { align: 'center' });
+      
+      yPosition += 5;
+      pdf.text(`Generated: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, pageWidth / 2, yPosition, { align: 'center' });
+      
+      yPosition += 5;
+      pdf.setFontSize(8);
+      pdf.setTextColor(107, 114, 128);
+      pdf.text('This document contains confidential information for authorized personnel only', pageWidth / 2, yPosition, { align: 'center' });
+      
+      yPosition += 20;
+
+      // Add a new page for content
+      pdf.addPage();
+      yPosition = 20;
+
+      // Proposal Overview Section
+      pdf.setFontSize(16);
+      pdf.setTextColor(234, 88, 12);
+      pdf.text('Proposal Overview', 20, yPosition);
+      yPosition += 10;
+
+      pdf.setFontSize(10);
+      pdf.setTextColor(51, 51, 51);
+      
+      // Key information in professional format
+      const infoItems = [
+        [`Proposal ID:`, proposal.id],
+        [`Title:`, proposal.title],
+        [`Principal Investigator:`, proposal.researcher],
+        [`Institution:`, proposal.institution],
+        [`Domain:`, proposal.domain],
+        [`Budget:`, `₹${proposal.budget.toLocaleString()}`],
+        [`Status:`, proposal.status.replace('_', ' ').toUpperCase()],
+        [`Current Phase:`, proposal.currentPhase],
+        [`Progress:`, `${progressPercentage}%`],
+        [`Submitted Date:`, proposal.submittedDate]
+      ];
+
+      infoItems.forEach(([label, value]) => {
+        if (yPosition > pageHeight - 30) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+        pdf.setFont(undefined, 'bold');
+        pdf.text(label, 20, yPosition);
+        pdf.setFont(undefined, 'normal');
+        
+        // Handle long text wrapping
+        const splitValue = pdf.splitTextToSize(value, pageWidth - 70);
+        pdf.text(splitValue, 70, yPosition);
+        yPosition += splitValue.length * 5 + 2;
+      });
+
+      yPosition += 10;
+
+      // Project Description
+      if (yPosition > pageHeight - 40) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+      
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Project Description:', 20, yPosition);
+      yPosition += 6;
+      pdf.setFont(undefined, 'normal');
+      const splitDescription = pdf.splitTextToSize(proposal.description, pageWidth - 40);
+      pdf.text(splitDescription, 20, yPosition);
+      yPosition += splitDescription.length * 5 + 15;
+
+      // Review Timeline Section
+      if (yPosition > pageHeight - 30) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+
+      pdf.setFontSize(16);
+      pdf.setTextColor(234, 88, 12);
+      pdf.text('Review Timeline', 20, yPosition);
+      yPosition += 10;
+
+      pdf.setFontSize(10);
+      pdf.setTextColor(51, 51, 51);
+
+      proposal.timeline.forEach((item, index) => {
+        if (yPosition > pageHeight - 25) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+
+        const statusColor = item.status === 'completed' ? [16, 185, 129] : 
+                           item.status === 'active' ? [234, 88, 12] : [107, 114, 128];
+        
+        pdf.setDrawColor(...statusColor);
+        pdf.setFillColor(...statusColor);
+        pdf.circle(25, yPosition - 1, 1, 'F');
+
+        pdf.setTextColor(51, 51, 51);
+        pdf.setFont(undefined, 'bold');
+        pdf.text(`${index + 1}. ${item.phase}`, 30, yPosition);
+        
+        pdf.setFont(undefined, 'normal');
+        pdf.setTextColor(107, 114, 128);
+        if (item.date) {
+          pdf.text(`Date: ${item.date}`, 30, yPosition + 4);
+        }
+        
+        const splitDesc = pdf.splitTextToSize(item.description, pageWidth - 50);
+        pdf.text(splitDesc, 30, yPosition + 8);
+        yPosition += 8 + splitDesc.length * 4 + 5;
+      });
+
+      // Key Milestones Section
+      if (yPosition > pageHeight - 30) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+
+      pdf.setFontSize(16);
+      pdf.setTextColor(234, 88, 12);
+      pdf.text('Key Milestones', 20, yPosition);
+      yPosition += 10;
+
+      pdf.setFontSize(10);
+      proposal.milestones.forEach((milestone, index) => {
+        if (yPosition > pageHeight - 20) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+
+        const statusColor = milestone.completed ? [16, 185, 129] : [107, 114, 128];
+        pdf.setDrawColor(...statusColor);
+        pdf.setFillColor(...statusColor);
+        pdf.circle(25, yPosition - 1, 1, 'F');
+
+        pdf.setTextColor(51, 51, 51);
+        pdf.setFont(undefined, 'bold');
+        pdf.text(`${index + 1}. ${milestone.title}`, 30, yPosition);
+        
+        pdf.setFont(undefined, 'normal');
+        pdf.setTextColor(107, 114, 128);
+        pdf.text(`Due: ${milestone.dueDate}`, 30, yPosition + 4);
+        
+        if (milestone.completedDate) {
+          pdf.setTextColor(16, 185, 129);
+          pdf.text(`Completed: ${milestone.completedDate}`, 30, yPosition + 8);
+          yPosition += 12;
+        } else {
+          yPosition += 8;
+        }
+        yPosition += 3;
+      });
+
+      // AI-Driven Review Process Note
+      if (yPosition > pageHeight - 40) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+
+      // AI Section Header with logo
+      pdf.setFontSize(16);
+      pdf.setTextColor(234, 88, 12);
+      pdf.text('AI-Driven Review Process', 30, yPosition);
+      
+      // Add AI Assistant logo next to the title
+      try {
+        await addImageToPDF('/images/AI assistant logo.png', 20, yPosition - 5, 8, 8);
+      } catch (aiLogoError) {
+        console.warn('AI logo could not be loaded:', aiLogoError);
+      }
+      
+      yPosition += 12;
+
+      pdf.setFontSize(10);
+      pdf.setTextColor(51, 51, 51);
+      pdf.setFont(undefined, 'normal');
+      const aiProcessText = `This proposal is being processed through PRISM's AI-driven review system. The AI automatically assigns expert reviewers based on domain expertise, manages workflow transitions, and provides intelligent recommendations. Human reviewers make final decisions based on AI-assisted analysis and comprehensive evaluation metrics.
+
+Key AI Features:
+• Automated compliance and quality screening
+• Intelligent reviewer assignment based on expertise matching
+• Real-time progress tracking and milestone verification
+• Smart recommendation system for proposal improvements
+• Predictive analysis for success probability assessment`;
+      
+      const splitAiText = pdf.splitTextToSize(aiProcessText, pageWidth - 40);
+      pdf.text(splitAiText, 20, yPosition);
+      yPosition += splitAiText.length * 5 + 15;
+
+      // Reviewer Feedback Section (if any)
+      if (proposal.feedback.length > 0) {
+        if (yPosition > pageHeight - 30) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+
+        pdf.setFontSize(16);
+        pdf.setTextColor(234, 88, 12);
+        pdf.text('Expert Reviewer Feedback', 20, yPosition);
+        yPosition += 10;
+
+        pdf.setFontSize(10);
+        proposal.feedback.forEach((feedback, index) => {
+          if (yPosition > pageHeight - 30) {
+            pdf.addPage();
+            yPosition = 20;
+          }
+
+          pdf.setTextColor(51, 51, 51);
+          pdf.setFont(undefined, 'bold');
+          pdf.text(`${index + 1}. ${feedback.reviewer}`, 20, yPosition);
+          
+          pdf.setFont(undefined, 'normal');
+          pdf.setTextColor(107, 114, 128);
+          pdf.text(feedback.designation, 20, yPosition + 4);
+          pdf.text(`Date: ${feedback.date}`, 20, yPosition + 8);
+          
+          pdf.setTextColor(51, 51, 51);
+          const splitComment = pdf.splitTextToSize(feedback.comment, pageWidth - 40);
+          pdf.text(splitComment, 20, yPosition + 12);
+          yPosition += 12 + splitComment.length * 4 + 8;
+        });
+      }
+
+      // Footer with logos and official information
+      const totalPages = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        
+        // Footer line separator
+        pdf.setDrawColor(234, 88, 12);
+        pdf.line(20, pageHeight - 25, pageWidth - 20, pageHeight - 25);
+        
+        // Footer logos (smaller)
+        try {
+          await addImageToPDF('/images/GOI logo.png', 20, pageHeight - 22, 12, 8);
+          await addImageToPDF('/images/prism brand logo.png', 40, pageHeight - 22, 10, 8);
+          await addImageToPDF('/images/cmpdi logo.jpg', 58, pageHeight - 22, 12, 8);
+        } catch (footerLogoError) {
+          console.warn('Footer logos could not be loaded:', footerLogoError);
+        }
+        
+        // Footer text
+        pdf.setFontSize(8);
+        pdf.setTextColor(107, 114, 128);
+        pdf.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 80, pageHeight - 18);
+        pdf.text(`Page ${i} of ${totalPages}`, 80, pageHeight - 14);
+        
+        pdf.setFontSize(7);
+        pdf.text('PRISM - Proposal Review & Innovation Support Mechanism', pageWidth - 20, pageHeight - 18, { align: 'right' });
+        pdf.text('Department of Coal, Government of India', pageWidth - 20, pageHeight - 14, { align: 'right' });
+        pdf.text('© 2025 Ministry of Coal, GoI', pageWidth - 20, pageHeight - 10, { align: 'right' });
+      }
+
+      // Save the PDF
+      const fileName = `PRISM_Proposal_Report_${proposal.id}_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+      
+    } catch (error) {
+      console.error('PDF Export failed:', error);
+      alert('PDF export failed. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  return (
+    <>
+      <style jsx>{trackAnimationStyles}</style>
+      <div className="min-h-screen bg-white">
+        {/* Distinctive Header Section - Matching create.jsx and view.jsx */}
+        <div className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 min-h-[280px]" style={{ overflow: 'visible' }}>
+          {/* Animated geometric patterns */}
+          <div className="absolute inset-0" style={{ overflow: 'hidden' }}>
+            <div className="absolute top-6 left-10 w-12 h-12 border border-blue-400/30 rounded-full animate-pulse"></div>
+            <div className="absolute top-20 right-20 w-10 h-10 border border-indigo-400/20 rounded-lg rotate-45 animate-spin-slow"></div>
+            <div className="absolute bottom-12 left-32 w-8 h-8 bg-blue-500/10 rounded-full animate-bounce"></div>
+            <div className="absolute top-12 right-40 w-4 h-4 bg-indigo-400/20 rounded-full animate-ping"></div>
+          </div>
+          
+          {/* Overlay gradient */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
+          
+          {/* Header Content */}
+          <div className="relative z-10 max-w-7xl mx-auto px-6 py-10" style={{ overflow: 'visible' }}>
+            <div className="group animate-fadeIn">
+              <div className="flex items-center mb-5">
+                <div className="relative">
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-2xl group-hover:shadow-orange-500/25 transition-all duration-500 group-hover:scale-110">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-6 bg-green-400 rounded-full border-2 border-white animate-pulse flex items-center justify-center">
+                    <span className="text-xs text-white font-bold">{Math.round(progressPercentage)}%</span>
+                  </div>
+                </div>
+                
+                <div className="ml-6">
+                  <div className="flex items-center mb-2">
+                    <h1 className="text-white text-4xl font-black tracking-tight bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent animate-slideInUp">
+                      Track Proposal
+                    </h1>
+                  </div>
+                  <div className="flex items-center space-x-3 animate-slideInUp" style={{ animationDelay: '0.2s' }}>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse mr-3"></div>
+                      <span className="text-blue-100 font-semibold text-lg">NaCCER Research Portal</span>
+                    </div>
+                    <div className="h-4 w-px bg-blue-300/50"></div>
+                    <span className="text-blue-200 font-medium text-sm">Proposal Tracking System</span>
+                  </div>
+                  <div className="flex items-center gap-4 mt-2 text-sm text-blue-200 animate-slideInUp" style={{ animationDelay: '0.4s' }}>
+                    <span>Proposal ID: {proposal.id}</span>
+                    <span>•</span>
+                    <span>Status: {proposal.status.replace('_', ' ').toUpperCase()}</span>
+                    <span>•</span>
+                    <span className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      {completedMilestones}/{totalMilestones} milestones
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* PRISM Banner */}
+              <div className="bg-orange-600 backdrop-blur-md rounded-2xl p-4 border border-orange-300/40 shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 animate-slideInUp" style={{ animationDelay: '0.6s' }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-10 h-10 bg-gradient-to-br from-white to-orange-50 rounded-lg flex items-center justify-center shadow-lg overflow-hidden border border-orange-200/50">
+                        <img 
+                          src="/images/prism brand logo.png" 
+                          alt="PRISM Logo" 
+                          className="w-10 h-10 object-contain"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <h2 className="text-white font-bold text-xl mb-1 flex items-center">
+                        <span className="text-white drop-shadow-md tracking-wide">PRISM</span>
+                        <div className="ml-3 px-2 py-0.5 bg-gradient-to-r from-blue-400/30 to-purple-400/30 rounded-full flex items-center justify-center border border-blue-300/40 backdrop-blur-sm">
+                          <div className="w-1.5 h-1.5 bg-blue-300 rounded-full mr-1.5 animate-pulse"></div>
+                          <span className="text-white text-xs font-semibold drop-shadow-sm">TRACKING</span>
+                        </div>
+                      </h2>
+                      <p className="text-orange-50 text-sm leading-relaxed font-medium opacity-95 drop-shadow-sm">
+                        Proposal Review & Innovation Support Mechanism for Department of Coal's Advanced Research Platform
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Container */}
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          
+          {/* Navigation and Control Buttons */}
+          <div className="flex justify-between items-center mb-6">
+            {/* Back to Dashboard Button */}
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 text-green-800 border border-green-300 transition-all duration-300 flex items-center gap-3 font-semibold shadow-lg hover:shadow-xl text-sm transform hover:scale-105 animate-fadeIn cursor-pointer"
+            >
+              <div className="w-5 h-5 bg-green-200 rounded-full flex items-center justify-center">
+                <svg className="w-3 h-3 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+              </div>
+              Back to Dashboard
+            </button>
+
+            {/* Export Button */}
+            <button 
+              onClick={handleExportReport}
+              disabled={isExporting}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 text-blue-800 border border-blue-300 transition-all duration-300 flex items-center gap-3 font-semibold shadow-lg hover:shadow-xl text-sm transform hover:scale-105 animate-fadeIn cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              <div className="w-5 h-5 bg-blue-200 rounded-full flex items-center justify-center">
+                {isExporting ? (
+                  <svg className="w-3 h-3 text-blue-700 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <svg className="w-3 h-3 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                )}
+              </div>
+              {isExporting ? 'Generating...' : 'Export Report'}
+            </button>
+          </div>
+
+          {/* Proposal Overview Section */}
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-orange-200 animate-slideInUp" style={{ animationDelay: '0.2s' }}>
+            <h2 className="text-2xl font-bold text-black mb-4 flex items-center">
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              Proposal Overview
+            </h2>
+            
+            <div className="grid md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+                <div className="text-orange-600 text-sm font-semibold mb-1">Title</div>
+                <div className="text-black font-semibold text-sm">{proposal.title}</div>
+              </div>
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <div className="text-blue-600 text-sm font-semibold mb-1">Principal Investigator</div>
+                <div className="text-black font-semibold text-sm">{proposal.researcher}</div>
+              </div>
+              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                <div className="text-green-600 text-sm font-semibold mb-1">Current Phase</div>
+                <div className="text-black font-semibold text-sm">{proposal.currentPhase}</div>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-black">Overall Progress</span>
+                <span className="text-sm font-bold text-orange-600">{progressPercentage}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <div 
+                  className="bg-gradient-to-r from-orange-500 to-red-600 h-3 rounded-full transition-all duration-1000 ease-out animate-pulse-gentle"
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-600">{proposal.budget.toLocaleString()}</div>
+                <div className="text-sm text-gray-500">Budget (₹)</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">{proposal.submittedDate}</div>
+                <div className="text-sm text-gray-500">Submitted</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">{completedMilestones}/{totalMilestones}</div>
+                <div className="text-sm text-gray-500">Milestones</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">{proposal.feedback.length}</div>
+                <div className="text-sm text-gray-500">Reviews</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Timeline and Milestones using TimelineChart component */}
+          <TimelineChart 
+            timeline={proposal.timeline}
+            milestones={proposal.milestones}
+            currentPhase={proposal.currentPhase}
+          />
+
+          {/* Recent Activity Section */}
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-blue-200 animate-slideInUp" style={{ animationDelay: '0.8s' }}>
+            <h3 className="text-xl font-bold text-black mb-6 flex items-center">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              Recent Activity
+            </h3>
+            
+            <div className="space-y-4">
+              {proposal.recentActivity.map((activity, index) => (
+                <div key={index} className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold ${
+                    activity.type === 'reviewer_comment' ? 'bg-blue-500' :
+                    activity.type === 'ai_suggestion' ? 'bg-purple-500' :
+                    activity.type === 'proposal_edit' ? 'bg-orange-500' :
+                    activity.type === 'reviewer_assigned' ? 'bg-green-500' :
+                    'bg-gray-500'
+                  }`}>
+                    {activity.type === 'reviewer_comment' ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                    ) : activity.type === 'ai_suggestion' ? (
+                      <img src="/images/AI assistant logo.png" alt="AI" className="w-6 h-6 rounded-full" />
+                    ) : activity.type === 'proposal_edit' ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    ) : activity.type === 'reviewer_assigned' ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold text-black">{activity.actor}</span>
+                      <span className="text-gray-500 text-sm">{activity.action}</span>
+                      <span className="text-xs text-gray-500">{activity.timestamp}</span>
+                    </div>
+                    <p className="text-sm text-gray-500">{activity.details}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Reviewer Feedback Section */}
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-green-200 animate-slideInUp" style={{ animationDelay: '1.0s' }}>
+            <h3 className="text-xl font-bold text-black mb-6 flex items-center">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2v-6a2 2 0 012-2h8z" />
+                </svg>
+              </div>
+              Reviewer Feedback
+            </h3>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {proposal.feedback.map((feedback, index) => (
+                <div key={index} className={`p-4 rounded-lg border-l-4 ${
+                  feedback.type === 'positive' ? 'bg-green-50 border-green-500' :
+                  feedback.type === 'suggestion' ? 'bg-blue-50 border-blue-500' :
+                  'bg-gray-50 border-gray-400'
+                }`}>
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold ${
+                      feedback.type === 'positive' ? 'bg-green-500' :
+                      feedback.type === 'suggestion' ? 'bg-blue-500' :
+                      'bg-gray-400'
+                    }`}>
+                      {feedback.reviewer.split(' ').map(n => n.charAt(0)).join('').substring(0, 2)}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-black text-sm mb-1">{feedback.reviewer}</div>
+                      <div className="text-xs text-gray-500 mb-2">{feedback.designation}</div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-500 leading-relaxed mb-2">{feedback.comment}</p>
+                  <div className="text-xs text-gray-500">{feedback.date}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">

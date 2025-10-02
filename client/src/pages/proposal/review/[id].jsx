@@ -2,8 +2,54 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../../context/AuthContext';
 import ProtectedRoute from '../../../components/ProtectedRoute';
+import Chatbot from '../../../components/Chatbot';
+import jsPDF from 'jspdf';
+import { createPortal } from 'react-dom';
 
-export default function ReviewProposal() {
+// Custom CSS animations matching other pages
+const reviewAnimationStyles = `
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideInUp {
+    from { 
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes scaleIn {
+    from { 
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to { 
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  .animate-fadeIn {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+  
+  .animate-slideInUp {
+    animation: slideInUp 0.6s ease-out forwards;
+    animation-fill-mode: both;
+  }
+  
+  .animate-scaleIn {
+    animation: scaleIn 0.5s ease-out forwards;
+  }
+`;
+
+function ReviewProposalContent() {
   const router = useRouter();
   const { id } = router.query;
   const { user } = useAuth();
@@ -11,48 +57,64 @@ export default function ReviewProposal() {
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState('');
   const [reviewStatus, setReviewStatus] = useState('under_review');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showDecisionConfirm, setShowDecisionConfirm] = useState(false);
+  const [showCommitModal, setShowCommitModal] = useState(false);
+  const [committing, setCommitting] = useState(false);
+  const [commitMessage, setCommitMessage] = useState('');
+  const [showDecisionSuccess, setShowDecisionSuccess] = useState(false);
+  const [submittedDecision, setSubmittedDecision] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
+  const [showChatbot, setShowChatbot] = useState(true);
 
   useEffect(() => {
     const fetchProposal = async () => {
       try {
         if (id) {
-          // Mock data - replace with actual API
+          // Mock data for coal R&D proposal - replace with actual API
           const mockProposal = {
-            id: id,
-            title: "AI-Powered Medical Diagnosis System",
-            researcher: "Dr. Sarah Johnson",
-            institution: "Indian Institute of Technology, Delhi",
-            description: "Development of AI system for medical diagnosis using machine learning and computer vision. The system will analyze medical images, patient data, and symptoms to provide accurate diagnostic suggestions to healthcare professionals. This comprehensive solution aims to improve diagnostic accuracy and reduce time-to-diagnosis in critical medical situations.",
-            domain: "Artificial Intelligence & Healthcare",
-            budget: 150000,
+            id: id || "COAL-2024-001",
+            title: "Advanced Coal Gasification Technology for Clean Energy Production",
+            researcher: "Dr. Rajesh Kumar",
+            institution: "Indian Institute of Technology (Indian School of Mines), Dhanbad",
+            description: "Development of advanced coal gasification technology to improve energy efficiency and reduce environmental impact in coal-based power generation. This comprehensive solution integrates cutting-edge thermochemical processes with AI-driven optimization algorithms to achieve maximum energy conversion rates while minimizing carbon emissions.",
+            domain: "Coal Technology & Clean Energy",
+            budget: 2500000,
             status: "under_review",
-            submittedDate: "2025-09-20",
-            createdAt: "2025-09-20T10:00:00Z",
+            submittedDate: "2025-09-15",
+            currentPhase: "Expert Technical Review",
+            createdAt: "2025-09-15T10:00:00Z",
             documents: [
-              { name: "Research_Proposal.pdf", size: "2.5 MB", uploadDate: "2025-09-20" },
-              { name: "Budget_Breakdown.xlsx", size: "1.2 MB", uploadDate: "2025-09-20" },
-              { name: "Technical_Specifications.docx", size: "3.1 MB", uploadDate: "2025-09-20" }
+              { name: "Main_Research_Proposal.pdf", size: "4.2 MB", uploadDate: "2025-09-15", type: "proposal" },
+              { name: "Technical_Specifications.pdf", size: "3.8 MB", uploadDate: "2025-09-15", type: "technical" },
+              { name: "Budget_Breakdown_Detailed.xlsx", size: "1.5 MB", uploadDate: "2025-09-15", type: "financial" },
+              { name: "Literature_Review.pdf", size: "2.9 MB", uploadDate: "2025-09-15", type: "research" },
+              { name: "Environmental_Impact_Assessment.pdf", size: "3.2 MB", uploadDate: "2025-09-15", type: "environmental" },
+              { name: "Safety_Protocols.pdf", size: "1.8 MB", uploadDate: "2025-09-15", type: "safety" },
+              { name: "Team_Qualifications.pdf", size: "2.1 MB", uploadDate: "2025-09-15", type: "team" },
+              { name: "Equipment_Specifications.pdf", size: "3.5 MB", uploadDate: "2025-09-15", type: "equipment" },
+              { name: "Timeline_Gantt_Chart.pdf", size: "1.3 MB", uploadDate: "2025-09-15", type: "timeline" }
             ],
             existingFeedback: [
               { 
                 id: 1, 
-                reviewer: "System Admin", 
-                comment: "Initial review completed. Proposal shows strong technical merit and clear objectives.", 
-                date: "2025-09-21",
+                reviewer: "AI System", 
+                comment: "Initial automated review completed. Proposal shows strong technical merit and clear research objectives. No compliance issues detected.", 
+                date: "2025-09-16",
                 type: "system_feedback"
               },
               { 
                 id: 2, 
-                reviewer: "Dr. Review Panel", 
-                comment: "Need clarification on data privacy measures and patient consent protocols.", 
-                date: "2025-09-22",
+                reviewer: "Dr. Amit Sharma", 
+                comment: "Methodology for coal characterization looks comprehensive. Please clarify the safety protocols for high-temperature gasification experiments.", 
+                date: "2025-09-20",
                 type: "reviewer_feedback"
               }
             ],
             timeline: {
-              phase1: "3 months - Algorithm Development",
-              phase2: "6 months - Testing & Validation", 
-              phase3: "3 months - Clinical Trials"
+              phase1: "6 months - Coal Characterization & Process Design",
+              phase2: "12 months - Pilot Plant Construction & Testing", 
+              phase3: "6 months - Optimization & Performance Evaluation"
             }
           };
           setProposal(mockProposal);
@@ -81,7 +143,7 @@ export default function ReviewProposal() {
       // Mock feedback submission
       const newFeedback = {
         id: Date.now(),
-        reviewer: user?.name || "Anonymous Reviewer",
+        reviewer: user?.name || "Dr. Review Expert",
         comment: feedback,
         date: new Date().toISOString().split('T')[0],
         type: "reviewer_feedback"
@@ -93,7 +155,12 @@ export default function ReviewProposal() {
       }));
       
       setFeedback('');
-      alert("Feedback submitted successfully!");
+      setShowSuccessModal(true);
+      
+      // Auto-hide success modal after 3 seconds
+      setTimeout(() => {
+        setShowSuccessModal(false);
+      }, 3000);
       
     } catch (error) {
       console.error("Error submitting feedback:", error);
@@ -101,346 +168,765 @@ export default function ReviewProposal() {
     }
   };
 
+  // PDF Export Function with Government Logos
+  const handleExportReview = async () => {
+    setIsExporting(true);
+    
+    try {
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      let yPosition = 10;
+
+      // Helper function to load and add image to PDF
+      const addImageToPDF = (imagePath, x, y, width, height) => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            try {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+              canvas.width = img.width;
+              canvas.height = img.height;
+              ctx.drawImage(img, 0, 0);
+              const imgData = canvas.toDataURL('image/png');
+              pdf.addImage(imgData, 'PNG', x, y, width, height);
+              resolve();
+            } catch (error) {
+              console.warn('Error adding image:', imagePath, error);
+              resolve();
+            }
+          };
+          img.onerror = () => {
+            console.warn('Could not load image:', imagePath);
+            resolve();
+          };
+          img.src = imagePath;
+        });
+      };
+
+      // Official Government Logos Header
+      try {
+        await addImageToPDF('/images/GOI logo.png', 15, yPosition, 25, 15);
+        await addImageToPDF('/images/coal india logo.webp', 45, yPosition, 25, 15);
+        await addImageToPDF('/images/prism brand logo.png', 85, yPosition, 20, 15);
+        await addImageToPDF('/images/cmpdi logo.jpg', 115, yPosition, 25, 15);
+        await addImageToPDF('/images/AI assistant logo.png', 150, yPosition, 20, 15);
+      } catch (logoError) {
+        console.warn('Some logos could not be loaded:', logoError);
+      }
+
+      yPosition += 20;
+
+      // Header
+      pdf.setFontSize(20);
+      pdf.setTextColor(234, 88, 12);
+      pdf.text('PRISM - Expert Review Report', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 8;
+
+      pdf.setFontSize(12);
+      pdf.setTextColor(102, 102, 102);
+      pdf.text('Proposal Review & Innovation Support Mechanism', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 5;
+      pdf.text('Department of Coal - Advanced Research Platform', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 3;
+      pdf.text('Government of India', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 15;
+
+      // Line separator
+      pdf.setDrawColor(234, 88, 12);
+      pdf.line(20, yPosition, pageWidth - 20, yPosition);
+      yPosition += 15;
+
+      // Proposal Information
+      pdf.setFontSize(16);
+      pdf.setTextColor(234, 88, 12);
+      pdf.text('Proposal Under Review', 20, yPosition);
+      yPosition += 10;
+
+      pdf.setFontSize(10);
+      pdf.setTextColor(51, 51, 51);
+      
+      const reviewInfo = [
+        [`Proposal ID:`, proposal.id],
+        [`Title:`, proposal.title],
+        [`Principal Investigator:`, proposal.researcher],
+        [`Institution:`, proposal.institution],
+        [`Domain:`, proposal.domain],
+        [`Budget:`, `₹${proposal.budget.toLocaleString()}`],
+        [`Current Status:`, reviewStatus.replace('_', ' ').toUpperCase()],
+        [`Review Phase:`, proposal.currentPhase],
+        [`Submitted Date:`, proposal.submittedDate],
+        [`Reviewer:`, user?.name || 'Expert Reviewer']
+      ];
+
+      reviewInfo.forEach(([label, value]) => {
+        if (yPosition > pageHeight - 30) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+        pdf.setFont(undefined, 'bold');
+        pdf.text(label, 20, yPosition);
+        pdf.setFont(undefined, 'normal');
+        
+        const splitValue = pdf.splitTextToSize(value, pageWidth - 70);
+        pdf.text(splitValue, 70, yPosition);
+        yPosition += splitValue.length * 5 + 2;
+      });
+
+      yPosition += 10;
+
+      // Expert Review Comments
+      if (proposal.existingFeedback.length > 0) {
+        if (yPosition > pageHeight - 30) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+
+        pdf.setFontSize(16);
+        pdf.setTextColor(234, 88, 12);
+        pdf.text('Expert Review Comments', 20, yPosition);
+        yPosition += 10;
+
+        pdf.setFontSize(10);
+        proposal.existingFeedback.forEach((feedback, index) => {
+          if (yPosition > pageHeight - 30) {
+            pdf.addPage();
+            yPosition = 20;
+          }
+
+          pdf.setTextColor(51, 51, 51);
+          pdf.setFont(undefined, 'bold');
+          pdf.text(`${index + 1}. ${feedback.reviewer} (${feedback.date})`, 20, yPosition);
+          yPosition += 6;
+          
+          pdf.setFont(undefined, 'normal');
+          pdf.setTextColor(107, 114, 128);
+          const splitComment = pdf.splitTextToSize(feedback.comment, pageWidth - 40);
+          pdf.text(splitComment, 20, yPosition);
+          yPosition += splitComment.length * 4 + 8;
+        });
+      }
+
+      // Footer
+      const totalPages = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(107, 114, 128);
+        pdf.text(`Generated: ${new Date().toLocaleDateString()} | Page ${i} of ${totalPages}`, 20, pageHeight - 10);
+        pdf.text('PRISM - Department of Coal, Government of India', pageWidth - 20, pageHeight - 10, { align: 'right' });
+      }
+
+      // Save PDF
+      const fileName = `PRISM_Review_Report_${proposal.id}_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+      
+    } catch (error) {
+      console.error('PDF Export failed:', error);
+      alert('PDF export failed. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleStatusChange = (newStatus) => {
     setReviewStatus(newStatus);
   };
 
+  const handleSubmitDecision = async () => {
+    // First show confirmation modal
+    setShowDecisionConfirm(true);
+  };
+
+  const handleConfirmDecision = () => {
+    // After confirmation, show commit modal
+    setShowDecisionConfirm(false);
+    setCommitMessage(`Review decision: ${reviewStatus.replace('_', ' ').toUpperCase()}`);
+    setShowCommitModal(true);
+  };
+
+  const handleCommitDecision = async () => {
+    if (!commitMessage.trim()) {
+      alert("Please enter a commit message.");
+      return;
+    }
+
+    setCommitting(true);
+    
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // API call to submit decision
+      console.log("Submitting decision:", { proposalId: id, reviewStatus, commitMessage });
+      
+      // Mock decision submission
+      setProposal(prev => ({
+        ...prev,
+        status: reviewStatus
+      }));
+      
+      setShowCommitModal(false);
+      setCommitting(false);
+      
+      // Show success popup
+      setSubmittedDecision(reviewStatus);
+      setShowDecisionSuccess(true);
+      
+      // Auto-hide success modal after 4 seconds
+      setTimeout(() => {
+        setShowDecisionSuccess(false);
+      }, 4000);
+      
+    } catch (error) {
+      console.error("Error submitting decision:", error);
+      alert("Failed to submit decision. Please try again.");
+      setCommitting(false);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-violet-900 to-indigo-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-300"></div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="text-black text-xl mt-4">Loading proposal for review...</p>
+        </div>
       </div>
     );
   }
 
   if (!proposal) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-violet-900 to-indigo-900 flex items-center justify-center">
-        <div className="text-white text-xl">Proposal not found</div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-black text-xl">Proposal not found</div>
       </div>
     );
   }
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-violet-900 to-indigo-900 relative overflow-hidden">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-violet-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-          <div className="absolute top-40 left-40 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+    <>
+      <style jsx>{reviewAnimationStyles}</style>
+      <div className="min-h-screen bg-white">
+        {/* Header Section - Matching other pages */}
+        <div className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 min-h-[280px]" style={{ overflow: 'visible' }}>
+          {/* Animated geometric patterns */}
+          <div className="absolute inset-0" style={{ overflow: 'hidden' }}>
+            <div className="absolute top-6 left-10 w-12 h-12 border border-blue-400/30 rounded-full animate-pulse"></div>
+            <div className="absolute top-20 right-20 w-10 h-10 border border-indigo-400/20 rounded-lg rotate-45 animate-spin-slow"></div>
+            <div className="absolute bottom-12 left-32 w-8 h-8 bg-blue-500/10 rounded-full animate-bounce"></div>
+            <div className="absolute top-12 right-40 w-4 h-4 bg-indigo-400/20 rounded-full animate-ping"></div>
+          </div>
+          
+          <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
+          
+          {/* Header Content */}
+          <div className="relative z-10 max-w-7xl mx-auto px-6 py-10" style={{ overflow: 'visible' }}>
+            <div className="group animate-fadeIn">
+              <div className="flex items-center mb-5">
+                <div className="relative">
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-2xl group-hover:shadow-orange-500/25 transition-all duration-500 group-hover:scale-110">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                  </div>
+                </div>
+                
+                <div className="ml-6">
+                  <div className="flex items-center mb-2">
+                    <h1 className="text-white text-4xl font-black tracking-tight bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent animate-slideInUp">
+                      Review Proposal
+                    </h1>
+                  </div>
+                  <div className="flex items-center space-x-3 animate-slideInUp" style={{ animationDelay: '0.2s' }}>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse mr-3"></div>
+                      <span className="text-blue-100 font-semibold text-lg">Expert Review Portal</span>
+                    </div>
+                    <div className="h-4 w-px bg-blue-300/50"></div>
+                    <span className="text-blue-200 font-medium text-sm">Proposal Assessment System</span>
+                  </div>
+                  <div className="flex items-center gap-4 mt-2 text-sm text-blue-200 animate-slideInUp" style={{ animationDelay: '0.4s' }}>
+                    <span>Proposal ID: {proposal.id}</span>
+                    <span>•</span>
+                    <span>Reviewer: {user?.name || 'Expert Reviewer'}</span>
+                    <span>•</span>
+                    <span className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      {proposal.currentPhase}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* PRISM Banner */}
+              <div className="bg-orange-600 backdrop-blur-md rounded-2xl p-4 border border-orange-300/40 shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 animate-slideInUp" style={{ animationDelay: '0.6s' }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-10 h-10 bg-gradient-to-br from-white to-orange-50 rounded-lg flex items-center justify-center shadow-lg overflow-hidden border border-orange-200/50">
+                        <img 
+                          src="/images/prism brand logo.png" 
+                          alt="PRISM Logo" 
+                          className="w-10 h-10 object-contain"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <h2 className="text-white font-bold text-xl mb-1 flex items-center">
+                        <span className="text-white drop-shadow-md tracking-wide">PRISM</span>
+                        <div className="ml-3 px-2 py-0.5 bg-gradient-to-r from-blue-400/30 to-purple-400/30 rounded-full flex items-center justify-center border border-blue-300/40 backdrop-blur-sm">
+                          <div className="w-1.5 h-1.5 bg-blue-300 rounded-full mr-1.5 animate-pulse"></div>
+                          <span className="text-white text-xs font-semibold drop-shadow-sm">REVIEW</span>
+                        </div>
+                      </h2>
+                      <p className="text-orange-50 text-sm leading-relaxed font-medium opacity-95 drop-shadow-sm">
+                        Proposal Review & Innovation Support Mechanism for Department of Coal's Advanced Research Platform
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Hero Section */}
-        <div className="relative z-10 pt-20 pb-16 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            {/* Navigation */}
-            <div className="flex items-center justify-between mb-8 animate-fade-in-up">
-              <button
-                onClick={() => router.back()}
-                className="inline-flex items-center px-4 py-2 border border-purple-300 rounded-lg text-purple-200 bg-purple-800/30 hover:bg-purple-700/40 transition-all duration-200 backdrop-blur-sm"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {/* Main Content Container */}
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          
+          {/* Navigation and Export Buttons */}
+          <div className="flex justify-between items-center mb-6">
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 text-green-800 border border-green-300 transition-all duration-300 flex items-center gap-3 font-semibold shadow-lg hover:shadow-xl text-sm transform hover:scale-105 animate-fadeIn cursor-pointer"
+            >
+              <div className="w-5 h-5 bg-green-200 rounded-full flex items-center justify-center">
+                <svg className="w-3 h-3 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                Back to Dashboard
-              </button>
-              
-              <div className="flex items-center space-x-4">
-                <div className="text-purple-200 text-sm">
-                  Reviewer: <span className="text-white font-medium">{user?.name || 'Anonymous'}</span>
-                </div>
-                <div className="px-3 py-1 bg-purple-600/40 rounded-full text-purple-200 text-sm backdrop-blur-sm">
-                  Review Mode
-                </div>
               </div>
-            </div>
+              Back to Dashboard
+            </button>
 
-            {/* Title Section */}
-            <div className="text-center mb-12 animate-fade-in-up animation-delay-200">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
-                Proposal Review
-              </h1>
-              <p className="text-xl text-purple-200 max-w-3xl mx-auto">
-                Evaluate and provide feedback on research proposals with comprehensive review tools
-              </p>
-            </div>
+            <button 
+              onClick={handleExportReview}
+              disabled={isExporting}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 text-blue-800 border border-blue-300 transition-all duration-300 flex items-center gap-3 font-semibold shadow-lg hover:shadow-xl text-sm transform hover:scale-105 animate-fadeIn cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              <div className="w-5 h-5 bg-blue-200 rounded-full flex items-center justify-center">
+                {isExporting ? (
+                  <svg className="w-3 h-3 text-blue-700 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <svg className="w-3 h-3 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                )}
+              </div>
+              {isExporting ? 'Generating...' : 'Export Review Report'}
+            </button>
           </div>
-        </div>
 
-        {/* Main Content */}
-        <div className="relative z-10 px-4 sm:px-6 lg:px-8 pb-20">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-              {/* Proposal Details - Left Column */}
-              <div className="lg:col-span-2 space-y-8">
-                {/* Proposal Header Card */}
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-purple-300/20 animate-fade-in-up animation-delay-400">
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="flex-1">
-                      <h2 className="text-2xl font-bold text-white mb-2">{proposal.title}</h2>
-                      <div className="flex flex-wrap items-center gap-4 text-purple-200">
-                        <div className="flex items-center gap-2">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                          <span>{proposal.researcher}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                          </svg>
-                          <span>{proposal.institution}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="ml-4">
-                      <div className={`px-4 py-2 rounded-full text-sm font-medium ${
-                        proposal.status === 'approved' ? 'bg-green-500/20 text-green-300 border border-green-400/30' :
-                        proposal.status === 'rejected' ? 'bg-red-500/20 text-red-300 border border-red-400/30' :
-                        'bg-amber-500/20 text-amber-300 border border-amber-400/30'
-                      }`}>
-                        {proposal.status.replace('_', ' ').toUpperCase()}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div className="bg-purple-600/20 rounded-xl p-4 border border-purple-400/20">
-                      <div className="text-purple-300 text-sm mb-1">Domain</div>
-                      <div className="text-white font-semibold">{proposal.domain}</div>
-                    </div>
-                    <div className="bg-purple-600/20 rounded-xl p-4 border border-purple-400/20">
-                      <div className="text-purple-300 text-sm mb-1">Budget</div>
-                      <div className="text-white font-semibold">₹{proposal.budget.toLocaleString()}</div>
-                    </div>
-                    <div className="bg-purple-600/20 rounded-xl p-4 border border-purple-400/20">
-                      <div className="text-purple-300 text-sm mb-1">Submitted</div>
-                      <div className="text-white font-semibold">{new Date(proposal.submittedDate).toLocaleDateString()}</div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-lg font-semibold text-white mb-3">Description</h3>
-                    <p className="text-purple-200 leading-relaxed">{proposal.description}</p>
-                  </div>
-                </div>
-
-                {/* Documents Section */}
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-purple-300/20 animate-fade-in-up animation-delay-600">
-                  <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                    <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Main Content - Left 2 columns */}
+            <div className="lg:col-span-2 space-y-6">
+              
+              {/* Proposal Overview */}
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-orange-200 animate-slideInUp" style={{ animationDelay: '0.2s' }}>
+                <h2 className="text-2xl font-bold text-black mb-4 flex items-center">
+                  <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                    <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    Supporting Documents
-                  </h3>
-                  <div className="space-y-4">
-                    {proposal.documents.map((doc, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 bg-purple-600/20 rounded-xl border border-purple-400/20 hover:bg-purple-600/30 transition-colors duration-200">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-purple-500/30 rounded-lg flex items-center justify-center">
-                            <svg className="w-6 h-6 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                          </div>
-                          <div>
-                            <div className="text-white font-medium">{doc.name}</div>
-                            <div className="text-purple-300 text-sm">{doc.size} • Uploaded {doc.uploadDate}</div>
-                          </div>
-                        </div>
-                        <button className="px-4 py-2 bg-purple-600/40 hover:bg-purple-600/60 text-purple-200 rounded-lg transition-colors duration-200 backdrop-blur-sm">
-                          Download
-                        </button>
-                      </div>
-                    ))}
                   </div>
-                </div>
-
-                {/* Timeline Section */}
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-purple-300/20 animate-fade-in-up animation-delay-800">
-                  <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                    <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Project Timeline
-                  </h3>
-                  <div className="space-y-4">
-                    {Object.entries(proposal.timeline).map(([phase, description], index) => (
-                      <div key={phase} className="flex items-start gap-4">
-                        <div className="w-8 h-8 bg-purple-500/30 rounded-full flex items-center justify-center mt-1">
-                          <div className="w-3 h-3 bg-purple-400 rounded-full"></div>
-                        </div>
-                        <div className="flex-1 pb-4">
-                          <div className="text-white font-medium mb-1">Phase {index + 1}</div>
-                          <div className="text-purple-200">{description}</div>
-                        </div>
+                  Proposal Overview
+                </h2>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-black mb-2">{proposal.title}</h3>
+                    <div className="grid md:grid-cols-3 gap-4 mb-4">
+                      <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+                        <div className="text-orange-600 text-sm font-semibold mb-1">Principal Investigator</div>
+                        <div className="text-black font-semibold text-sm">{proposal.researcher}</div>
                       </div>
-                    ))}
+                      <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                        <div className="text-blue-600 text-sm font-semibold mb-1">Institution</div>
+                        <div className="text-black font-semibold text-sm">{proposal.institution}</div>
+                      </div>
+                      <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                        <div className="text-green-600 text-sm font-semibold mb-1">Domain</div>
+                        <div className="text-black font-semibold text-sm">{proposal.domain}</div>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div className="text-gray-500 text-sm font-semibold mb-1">Budget</div>
+                      <div className="text-black font-bold text-lg">₹{proposal.budget.toLocaleString()}</div>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div className="text-gray-500 text-sm font-semibold mb-1">Submitted Date</div>
+                      <div className="text-black font-bold text-lg">{new Date(proposal.submittedDate).toLocaleDateString()}</div>
+                    </div>
+                  </div>
 
-                {/* Existing Feedback */}
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-purple-300/20 animate-fade-in-up animation-delay-1000">
-                  <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                    <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                    Review History
-                  </h3>
-                  <div className="space-y-4">
-                    {proposal.existingFeedback.map((feedback) => (
-                      <div key={feedback.id} className="p-6 bg-purple-600/20 rounded-xl border border-purple-400/20">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-purple-500/40 rounded-full flex items-center justify-center">
-                              <span className="text-purple-200 text-sm font-medium">
-                                {feedback.reviewer.split(' ').map(n => n[0]).join('')}
-                              </span>
-                            </div>
-                            <div>
-                              <div className="text-white font-medium">{feedback.reviewer}</div>
-                              <div className="text-purple-300 text-sm">{feedback.date}</div>
-                            </div>
-                          </div>
-                          <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            feedback.type === 'system_feedback' 
-                              ? 'bg-blue-500/20 text-blue-300 border border-blue-400/30'
-                              : 'bg-purple-500/20 text-purple-300 border border-purple-400/30'
-                          }`}>
-                            {feedback.type.replace('_', ' ')}
-                          </div>
-                        </div>
-                        <p className="text-purple-200 leading-relaxed">{feedback.comment}</p>
-                      </div>
-                    ))}
+                  <div>
+                    <h4 className="text-lg font-bold text-black mb-2">Project Description</h4>
+                    <p className="text-gray-500 leading-relaxed">{proposal.description}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Review Actions - Right Column */}
-              <div className="lg:col-span-1">
-                <div className="sticky top-8 space-y-6">
-                  {/* Review Status */}
-                  <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-purple-300/20 animate-fade-in-up animation-delay-1200">
-                    <h3 className="text-lg font-bold text-white mb-4">Review Decision</h3>
-                    <div className="space-y-3">
-                      {['approved', 'rejected', 'needs_revision'].map((status) => (
-                        <label key={status} className="flex items-center cursor-pointer">
-                          <input
-                            type="radio"
-                            name="reviewStatus"
-                            value={status}
-                            checked={reviewStatus === status}
-                            onChange={(e) => handleStatusChange(e.target.value)}
-                            className="sr-only"
-                          />
-                          <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
-                            reviewStatus === status
-                              ? 'border-purple-400 bg-purple-500'
-                              : 'border-purple-400/40'
-                          }`}>
-                            {reviewStatus === status && (
-                              <div className="w-2 h-2 bg-white rounded-full"></div>
-                            )}
-                          </div>
-                          <span className={`capitalize ${
-                            reviewStatus === status ? 'text-white' : 'text-purple-300'
-                          }`}>
-                            {status.replace('_', ' ')}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
+              {/* Supporting Documents */}
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-blue-200 animate-slideInUp" style={{ animationDelay: '0.4s' }}>
+                <h3 className="text-xl font-bold text-black mb-6 flex items-center">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
                   </div>
-
-                  {/* Feedback Section */}
-                  <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-purple-300/20 animate-fade-in-up animation-delay-1400">
-                    <h3 className="text-lg font-bold text-white mb-4">Add Feedback</h3>
-                    <textarea
-                      value={feedback}
-                      onChange={(e) => setFeedback(e.target.value)}
-                      placeholder="Provide detailed feedback on the proposal..."
-                      className="w-full h-32 px-4 py-3 bg-purple-600/20 border border-purple-400/30 rounded-xl text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent resize-none"
-                    />
-                    <button
-                      onClick={handleSubmitFeedback}
-                      disabled={!feedback.trim()}
-                      className="w-full mt-4 px-6 py-3 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 disabled:from-purple-800 disabled:to-violet-800 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all duration-200 transform hover:scale-105 disabled:scale-100"
-                    >
-                      Submit Feedback
-                    </button>
-                  </div>
-
-                  {/* Quick Actions */}
-                  <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-purple-300/20 animate-fade-in-up animation-delay-1600">
-                    <h3 className="text-lg font-bold text-white mb-4">Quick Actions</h3>
-                    <div className="space-y-3">
-                      <button className="w-full px-4 py-3 bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 rounded-xl transition-colors duration-200 text-left flex items-center gap-3">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Download All Documents
-                      </button>
-                      <button className="w-full px-4 py-3 bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 rounded-xl transition-colors duration-200 text-left flex items-center gap-3">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H9.414a1 1 0 01-.707-.293l-2-2A1 1 0 005.586 6H4a2 2 0 00-2 2v4a2 2 0 002 2h2m3 4h6m-6 0l3-3m-3 3l3 3" />
-                        </svg>
-                        Export Review Report
-                      </button>
-                      <button className="w-full px-4 py-3 bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 rounded-xl transition-colors duration-200 text-left flex items-center gap-3">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                        </svg>
-                        Share with Committee
+                  Supporting Documents
+                </h3>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  {proposal.documents.map((doc, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                          doc.type === 'proposal' ? 'bg-orange-100 text-orange-600' :
+                          doc.type === 'technical' ? 'bg-blue-100 text-blue-600' :
+                          doc.type === 'financial' ? 'bg-green-100 text-green-600' :
+                          doc.type === 'research' ? 'bg-purple-100 text-purple-600' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="text-black font-medium text-sm">{doc.name}</div>
+                          <div className="text-gray-500 text-xs">{doc.size} • {doc.uploadDate}</div>
+                        </div>
+                      </div>
+                      <button className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm transition-colors">
+                        View
                       </button>
                     </div>
-                  </div>
+                  ))}
                 </div>
+              </div>
+
+              {/* Review History */}
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-purple-200 animate-slideInUp" style={{ animationDelay: '0.6s' }}>
+                <h3 className="text-xl font-bold text-black mb-6 flex items-center">
+                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                  </div>
+                  Review History
+                </h3>
+                
+                <div className="space-y-4">
+                  {proposal.existingFeedback.map((feedback) => (
+                    <div key={feedback.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                          <span className="text-purple-600 text-sm font-bold">
+                            {feedback.reviewer.split(' ').map(n => n.charAt(0)).join('').substring(0, 2)}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="font-semibold text-black">{feedback.reviewer}</div>
+                            <div className="text-xs text-gray-500">{feedback.date}</div>
+                          </div>
+                          <p className="text-gray-500 text-sm leading-relaxed">{feedback.comment}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Review Panel - Right column */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-8 space-y-6">
+                
+                {/* Review Decision */}
+                <div className="bg-white rounded-xl shadow-lg p-6 border border-green-200 animate-slideInUp" style={{ animationDelay: '0.8s' }}>
+                  <h3 className="text-xl font-bold text-black mb-4 flex items-center">
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                      </svg>
+                    </div>
+                    Review Decision
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    {[
+                      { value: 'approved', label: 'Approve', color: 'green' },
+                      { value: 'needs_revision', label: 'Needs Revision', color: 'yellow' },
+                      { value: 'rejected', label: 'Reject', color: 'red' }
+                    ].map((option) => (
+                      <label key={option.value} className="flex items-center cursor-pointer p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                        <input
+                          type="radio"
+                          name="reviewStatus"
+                          value={option.value}
+                          checked={reviewStatus === option.value}
+                          onChange={(e) => setReviewStatus(e.target.value)}
+                          className="sr-only"
+                        />
+                        <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center transition-colors ${
+                          reviewStatus === option.value
+                            ? `border-${option.color}-500 bg-${option.color}-500`
+                            : 'border-gray-300'
+                        }`}>
+                          {reviewStatus === option.value && (
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                          )}
+                        </div>
+                        <span className={`font-medium ${
+                          reviewStatus === option.value ? 'text-black' : 'text-gray-500'
+                        }`}>
+                          {option.label}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+
+                  {reviewStatus !== 'under_review' && (
+                    <button
+                      onClick={handleSubmitDecision}
+                      className="w-full mt-4 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 transform hover:scale-105"
+                    >
+                      Submit Decision
+                    </button>
+                  )}
+                </div>
+
+                {/* Feedback Section */}
+                <div className="bg-white rounded-xl shadow-lg p-6 border border-orange-200 animate-slideInUp" style={{ animationDelay: '1.0s' }}>
+                  <h3 className="text-xl font-bold text-black mb-4 flex items-center">
+                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                      <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </div>
+                    Review Comments
+                  </h3>
+                  
+                  <textarea
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    placeholder="Enter your detailed review comments, suggestions, and recommendations here..."
+                    className="w-full h-32 p-4 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-black placeholder-gray-500"
+                  />
+                  
+                  <button
+                    onClick={handleSubmitFeedback}
+                    disabled={!feedback.trim()}
+                    className="w-full mt-4 bg-gradient-to-r from-orange-500 to-red-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-orange-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
+                  >
+                    Submit Review
+                  </button>
+                </div>
+
+
               </div>
             </div>
           </div>
         </div>
 
-        <style jsx>{`
-          @keyframes blob {
-            0% { transform: translate(0px, 0px) scale(1); }
-            33% { transform: translate(30px, -50px) scale(1.1); }
-            66% { transform: translate(-20px, 20px) scale(0.9); }
-            100% { transform: translate(0px, 0px) scale(1); }
-          }
-          .animate-blob {
-            animation: blob 7s infinite;
-          }
-          .animation-delay-2000 {
-            animation-delay: 2s;
-          }
-          .animation-delay-4000 {
-            animation-delay: 4s;
-          }
-          @keyframes fade-in-up {
-            from {
-              opacity: 0;
-              transform: translateY(30px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-          .animate-fade-in-up {
-            animation: fade-in-up 0.6s ease-out forwards;
-          }
-          .animation-delay-200 { animation-delay: 0.2s; }
-          .animation-delay-400 { animation-delay: 0.4s; }
-          .animation-delay-600 { animation-delay: 0.6s; }
-          .animation-delay-800 { animation-delay: 0.8s; }
-          .animation-delay-1000 { animation-delay: 1.0s; }
-          .animation-delay-1200 { animation-delay: 1.2s; }
-          .animation-delay-1400 { animation-delay: 1.4s; }
-          .animation-delay-1600 { animation-delay: 1.6s; }
-        `}</style>
+        {/* Success Modal */}
+        {showSuccessModal && createPortal(
+          <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(4px)' }}>
+            <div className="bg-white rounded-2xl p-8 max-w-md mx-4 animate-scaleIn shadow-2xl">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-black mb-2">Review Submitted Successfully!</h3>
+                <p className="text-gray-500 mb-6">Your expert review has been recorded and will be processed by the PRISM system.</p>
+                <button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="bg-gradient-to-r from-green-500 to-green-600 text-white py-2 px-6 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300"
+                >
+                  Continue
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+        {/* Decision Confirmation Modal */}
+        {showDecisionConfirm && createPortal(
+          <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(4px)' }}>
+            <div className="bg-white rounded-2xl p-8 max-w-md mx-4 animate-scaleIn shadow-2xl">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-black mb-2">Confirm Review Decision</h3>
+                <p className="text-gray-500 mb-2">Are you sure you want to submit this decision?</p>
+                <p className="text-black font-semibold mb-6">
+                  Decision: {reviewStatus.replace('_', ' ').toUpperCase()}
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowDecisionConfirm(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-500 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmDecision}
+                    className="flex-1 bg-gradient-to-r from-orange-500 to-red-600 text-white py-2 px-6 rounded-lg font-semibold hover:from-orange-600 hover:to-red-700 transition-all duration-300"
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+        {/* Commit Modal */}
+        {showCommitModal && createPortal(
+          <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(4px)' }}>
+            <div className="bg-white rounded-2xl p-8 max-w-md mx-4 animate-scaleIn shadow-2xl">
+              {committing ? (
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-blue-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-black mb-2">Submitting Decision...</h3>
+                  <p className="text-gray-500">Processing your review decision</p>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-black mb-2">Add Commit Message</h3>
+                  <p className="text-gray-500 mb-6">Describe your review decision for tracking purposes</p>
+                  
+                  <div className="mb-6">
+                    <textarea
+                      value={commitMessage}
+                      onChange={(e) => setCommitMessage(e.target.value)}
+                      placeholder="Enter commit message..."
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-black resize-none"
+                      rows="3"
+                    />
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowCommitModal(false)}
+                      className="flex-1 px-4 py-2 border border-gray-300 text-gray-500 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleCommitDecision}
+                      disabled={!commitMessage.trim()}
+                      className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-2 px-6 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                    >
+                      Submit Decision
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
+
+        {/* Decision Success Modal */}
+        {showDecisionSuccess && createPortal(
+          <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(4px)' }}>
+            <div className="bg-white rounded-2xl p-8 max-w-md mx-4 animate-scaleIn shadow-2xl">
+              <div className="text-center">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-black mb-3">Decision Submitted Successfully!</h3>
+                <div className="mb-4">
+                  <p className="text-gray-500 mb-2">Your review decision has been recorded:</p>
+                  <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${
+                    submittedDecision === 'approved' ? 'bg-green-100 text-green-800' :
+                    submittedDecision === 'needs_revision' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {submittedDecision === 'approved' && (
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                    {submittedDecision === 'needs_revision' && (
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                    )}
+                    {submittedDecision === 'rejected' && (
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                    {submittedDecision.replace('_', ' ').toUpperCase()}
+                  </div>
+                </div>
+                <p className="text-gray-500 mb-6">The proposal status has been updated and all stakeholders have been notified through the PRISM system.</p>
+                <button
+                  onClick={() => setShowDecisionSuccess(false)}
+                  className="bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-8 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 transform hover:scale-105"
+                >
+                  Continue Review
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+        {/* AI Chatbot - Always visible */}
+        <div className="fixed bottom-6 right-6 z-40">
+          <Chatbot 
+            context="reviewer"
+            proposalData={proposal}
+          />
+        </div>
       </div>
+    </>
+  );
+}
+
+export default function ReviewProposal() {
+  return (
+    <ProtectedRoute>
+      <ReviewProposalContent />
     </ProtectedRoute>
   );
 }
