@@ -7,6 +7,7 @@ from RAG import rag_chat_guidlines
 from RAG import rag_chat_specialist
 from RAG import timeline
 from RAG import similarity_checker
+from live_checker import online_checker
 from Json_extraction import extractor
 import uvicorn
 
@@ -30,7 +31,7 @@ app.include_router(extractor.router, prefix="/api")
 app.include_router(novelty.router, prefix="/api")
 app.include_router(cost.router, prefix="/api")
 app.include_router(plag.router, prefix="/api")
-
+app.include_router(online_checker.app, prefix="/api")
 # -----------------------------
 # Run FastAPI directly with Python
 # -----------------------------
