@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth, ROLES } from "../context/AuthContext";
 import ProtectedRoute from "../components/ProtectedRoute";
-import Navbar from "../components/Navbar";
 import LoadingScreen from "../components/LoadingScreen";
 import Link from "next/link";
 
@@ -241,72 +240,29 @@ function DashboardContent() {
 
     return (
     <div className="space-y-6">
-      {/* Distinctive Header Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 min-h-[150px] rounded-xl mb-6">
-        {/* Animated geometric patterns */}
-        <div className="absolute inset-0">
-          <div className="absolute top-6 left-10 w-12 h-12 border border-blue-400/30 rounded-full animate-pulse"></div>
-          <div className="absolute top-20 right-20 w-10 h-10 border border-indigo-400/20 rounded-lg rotate-45 animate-spin-slow"></div>
-          <div className="absolute bottom-12 left-32 w-8 h-8 bg-blue-500/10 rounded-full animate-bounce"></div>
-          <div className="absolute top-12 right-40 w-4 h-4 bg-indigo-400/20 rounded-full animate-ping"></div>
-        </div>
-        
-        {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
-        
-        {/* Header Content */}
-        <div className="relative z-10 px-6 py-8">
-          <div className="group">
-            <div className="flex items-center mb-5">
-              <div className="relative">
-                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-2xl group-hover:shadow-orange-500/25 transition-all duration-500 group-hover:scale-110">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                </div>
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
-              </div>
-              
-              <div className="ml-6">
-                <div className="flex items-center mb-2">
-                  <h1 className="text-white text-4xl font-black tracking-tight bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-                    Research Dashboard
-                  </h1>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse mr-3"></div>
-                    <span className="text-blue-100 font-semibold text-lg">Welcome back, {user?.name}</span>
-                  </div>
-                  <div className="h-4 w-px bg-blue-300/50"></div>
-                  <span className="text-blue-200 font-medium text-sm">NaCCER Research Portal</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Quick Actions & Filters */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-green-200">
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-orange-200 animate-slideInUp" style={{ animationDelay: '0.2s' }}>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
             <h2 className="text-2xl font-bold text-black mb-1 flex items-center">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
               Proposal Overview
             </h2>
-            <p className="text-black text-sm">Filter and manage your research proposals</p>
+            <p className="text-gray-500 text-sm">Filter and manage your research proposals</p>
           </div>
           <div className="flex flex-wrap gap-3">
             <Link href="/proposal/create">
-              <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all duration-300 flex items-center gap-2 font-medium shadow-md hover:shadow-lg text-sm">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
+              <button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-5 py-2.5 rounded-xl transition-all duration-300 flex items-center gap-3 font-semibold shadow-lg hover:shadow-xl text-sm transform hover:scale-105">
+                <div className="w-5 h-5 bg-orange-200 rounded-full flex items-center justify-center">
+                  <svg className="w-3 h-3 text-orange-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </div>
                 New Proposal
               </button>
             </Link>
@@ -328,8 +284,8 @@ function DashboardContent() {
               onClick={() => setStatusFilter(key)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
                 statusFilter === key
-                  ? 'bg-green-600 text-white shadow-md'
-                  : 'bg-green-50 text-black hover:bg-green-100 border border-green-200'
+                  ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg transform scale-105'
+                  : 'bg-orange-50 text-gray-500 hover:bg-orange-100 hover:text-orange-600 hover:shadow-md border border-orange-200'
               }`}
             >
               {label}
@@ -346,10 +302,10 @@ function DashboardContent() {
       </div>
 
       {/* Statistics Dashboard - Based on Design Image */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-green-200">
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-orange-200 animate-slideInUp" style={{ animationDelay: '0.4s' }}>
         <h2 className="text-2xl font-bold text-black mb-6 flex items-center">
-          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+            <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </div>
@@ -447,7 +403,7 @@ function DashboardContent() {
       </div>
       
       {/* Proposals Section */}
-      <div className="bg-white rounded-xl shadow-lg border border-orange-200 overflow-hidden group hover:shadow-xl transition-all duration-300 relative">
+      <div className="bg-white rounded-xl shadow-lg border border-orange-200 overflow-hidden group hover:shadow-xl transition-all duration-300 relative animate-slideInUp" style={{ animationDelay: '0.6s' }}>
         <div className="absolute inset-0 bg-orange-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         <div className="relative">
           <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-6 border-b border-orange-200">
@@ -476,96 +432,140 @@ function DashboardContent() {
         <div className="p-6">
         
         {filteredProposals.length > 0 ? (
-          <div className="space-y-4">
+          <div className="grid lg:grid-cols-2 gap-6">
             {filteredProposals.map((proposal, index) => (
-              <div key={proposal.id || proposal._id} className="group relative overflow-hidden border border-orange-200 rounded-lg p-4 bg-orange-50 hover:shadow-lg transition-all duration-300">
-                <div className="absolute top-0 right-0 w-16 h-16 bg-orange-600/10 rounded-full -translate-y-8 translate-x-8 group-hover:scale-150 transition-transform duration-500"></div>
-                <div className="relative">
-                  <div className="flex items-center mb-3">
-                    <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
-                      <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div key={proposal.id || proposal._id} className="group bg-white rounded-xl border border-orange-200 hover:border-orange-300 p-6 hover:shadow-xl transition-all duration-500 transform hover:-translate-y-1 animate-slideInUp" style={{ animationDelay: `${index * 0.1}s` }}>
+                {/* Header Section */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-orange-500/25 transition-all duration-300 group-hover:scale-110">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-base font-bold text-black">{proposal.title}</h3>
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          proposal.status === 'approved' ? 'bg-green-100 text-green-800' :
-                          proposal.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                          proposal.status === 'under_review' ? 'bg-blue-100 text-blue-800' :
-                          proposal.status === 'submitted' ? 'bg-orange-100 text-orange-800' :
-                          proposal.status === 'draft' ? 'bg-gray-100 text-gray-500' :
-                          'bg-blue-100 text-blue-800'
-                        }`}>
-                          {proposal.status?.replace('_', ' ')?.toUpperCase() || 'DRAFT'}
-                        </span>
-                      </div>
-                      <p className="text-black text-sm mb-3 leading-relaxed">
-                        {proposal.description || 'No description available'}
-                      </p>
+                      <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-orange-600 transition-colors duration-300">{proposal.title}</h3>
+                      <p className="text-sm text-gray-500">Research Proposal #{(proposal.id || proposal._id).toString().slice(-6).toUpperCase()}</p>
                     </div>
                   </div>
                   
-                  {/* Info Grid */}
-                  <div className="grid md:grid-cols-3 gap-2 mb-3">
-                    <div className="bg-white p-2 rounded-lg border border-orange-200">
-                      <div className="text-xs text-gray-500 mb-1">Domain</div>
-                      <div className="text-sm font-medium text-black">{proposal.domain || 'Not specified'}</div>
-                    </div>
+                  <div className="flex flex-col items-end space-y-2">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
+                      proposal.status === 'approved' ? 'bg-green-100 text-green-800 border border-green-200' :
+                      proposal.status === 'rejected' ? 'bg-red-100 text-red-800 border border-red-200' :
+                      proposal.status === 'under_review' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
+                      proposal.status === 'submitted' ? 'bg-orange-100 text-orange-800 border border-orange-200' :
+                      proposal.status === 'draft' ? 'bg-gray-100 text-gray-500 border border-gray-200' :
+                      'bg-blue-100 text-blue-800 border border-blue-200'
+                    }`}>
+                      {proposal.status?.replace('_', ' ')?.toUpperCase() || 'DRAFT'}
+                    </span>
+                    
                     {proposal.budget && (
-                      <div className="bg-white p-2 rounded-lg border border-orange-200">
-                        <div className="text-xs text-gray-500 mb-1">Budget</div>
-                        <div className="text-sm font-medium text-black">₹{proposal.budget.toLocaleString()}</div>
+                      <div className="text-right">
+                        <div className="text-xs text-gray-500">Budget</div>
+                        <div className="text-sm font-bold text-gray-900">₹{proposal.budget.toLocaleString()}</div>
                       </div>
                     )}
-                    {proposal.createdAt && (
-                      <div className="bg-white p-2 rounded-lg border border-orange-200">
-                        <div className="text-xs text-gray-500 mb-1">Created</div>
-                        <div className="text-sm font-medium text-black">{new Date(proposal.createdAt).toLocaleDateString()}</div>
-                      </div>
-                    )}
+                  </div>
+                </div>
+                
+                {/* Description */}
+                <div className="mb-4">
+                  <p className="text-gray-500 text-sm leading-relaxed line-clamp-3">
+                    {proposal.description || 'No description available for this research proposal.'}
+                  </p>
+                </div>
+                
+                {/* Details Grid */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="bg-orange-50 rounded-lg p-3 border border-orange-100">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                      <span className="text-xs font-medium text-orange-600">Domain</span>
+                    </div>
+                    <div className="text-sm font-semibold text-gray-900">{proposal.domain || 'Not specified'}</div>
                   </div>
                   
-                  {/* Action Buttons */}
-                  <div className="flex flex-wrap gap-1">
-                    <Link href={`/proposal/edit/${proposal.id || proposal._id}`}>
-                      <button className="bg-green-600 text-white px-2 py-1.5 rounded-md hover:bg-green-700 transition-all duration-300 flex items-center justify-center gap-1 font-medium shadow-sm hover:shadow-md text-xs">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        Edit
-                      </button>
-                    </Link>
-                    
-                    <Link href={`/proposal/view/${proposal.id || proposal._id}`}>
-                      <button className="bg-blue-600 text-white px-2 py-1.5 rounded-md hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-1 font-medium shadow-sm hover:shadow-md text-xs">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                        View
-                      </button>
-                    </Link>
-                    
-                    <Link href={`/proposal/collaborate/${proposal.id || proposal._id}`}>
-                      <button className="bg-purple-600 text-white px-2 py-1.5 rounded-md hover:bg-purple-700 transition-all duration-300 flex items-center justify-center gap-1 font-medium shadow-sm hover:shadow-md text-xs">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        Collaborate
-                      </button>
-                    </Link>
-                    
-                    <Link href={`/proposal/track/${proposal.id || proposal._id}`}>
-                      <button className="bg-orange-600 text-white px-2 py-1.5 rounded-md hover:bg-orange-700 transition-all duration-300 flex items-center justify-center gap-1 font-medium shadow-sm hover:shadow-md text-xs">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                        Track
-                      </button>
-                    </Link>
+                  <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6M8 7v6a7 7 0 1014 0V7M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-2" />
+                      </svg>
+                      <span className="text-xs font-medium text-blue-600">Created</span>
+                    </div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      {proposal.createdAt ? new Date(proposal.createdAt).toLocaleDateString('en-IN', { 
+                        day: '2-digit', 
+                        month: 'short', 
+                        year: 'numeric' 
+                      }) : 'Recently'}
+                    </div>
                   </div>
+                </div>
+                
+                {/* Progress Bar */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-medium text-gray-500">Progress</span>
+                    <span className="text-xs font-bold text-gray-900">
+                      {proposal.status === 'draft' ? '25%' :
+                       proposal.status === 'submitted' ? '50%' :
+                       proposal.status === 'under_review' ? '75%' :
+                       proposal.status === 'approved' ? '100%' : '0%'}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className={`h-2 rounded-full transition-all duration-500 ${
+                      proposal.status === 'approved' ? 'bg-green-500 w-full' :
+                      proposal.status === 'under_review' ? 'bg-blue-500 w-3/4' :
+                      proposal.status === 'submitted' ? 'bg-orange-500 w-1/2' :
+                      proposal.status === 'draft' ? 'bg-gray-400 w-1/4' :
+                      'bg-gray-300 w-0'
+                    }`}></div>
+                  </div>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-2">
+                  <Link href={`/proposal/edit/${proposal.id || proposal._id}`}>
+                    <button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2 transform hover:scale-105">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Edit
+                    </button>
+                  </Link>
+                  
+                  <Link href={`/proposal/view/${proposal.id || proposal._id}`}>
+                    <button className="bg-white border border-orange-200 hover:border-orange-300 text-orange-600 hover:text-orange-700 px-4 py-2 rounded-lg text-xs font-semibold shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-2 hover:bg-orange-50">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      View
+                    </button>
+                  </Link>
+                  
+                  <Link href={`/proposal/collaborate/${proposal.id || proposal._id}`}>
+                    <button className="bg-white border border-blue-200 hover:border-blue-300 text-blue-600 hover:text-blue-700 px-4 py-2 rounded-lg text-xs font-semibold shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-2 hover:bg-blue-50">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      Collaborate
+                    </button>
+                  </Link>
+                  
+                  <Link href={`/proposal/track/${proposal.id || proposal._id}`}>
+                    <button className="bg-white border border-green-200 hover:border-green-300 text-green-600 hover:text-green-700 px-4 py-2 rounded-lg text-xs font-semibold shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-2 hover:bg-green-50">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      Track
+                    </button>
+                  </Link>
                 </div>
               </div>
             ))}
@@ -793,30 +793,30 @@ function DashboardContent() {
                 <div key={proposal.id || proposal._id} className={`group bg-slate-50 hover:bg-white border border-slate-200 hover:border-purple-200 p-8 rounded-2xl hover:shadow-xl transition-all duration-300 animate-fade-in-up hover:scale-105`} style={{animationDelay: `${1400 + index * 100}ms`}}>
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">{proposal.title}</h3>
-                      <p className="text-gray-600 mb-3 line-clamp-2">{proposal.description}</p>
+                      <h3 className="text-xl font-bold text-black mb-2">{proposal.title}</h3>
+                      <p className="text-gray-500 mb-3 line-clamp-2">{proposal.description}</p>
                       
                       <div className="grid md:grid-cols-2 gap-4 text-sm mb-3">
                         <div className="space-y-1">
-                          <span className="text-gray-700">
+                          <span className="text-gray-500">
                             <strong>Author:</strong> {proposal.author}
                           </span>
                           <br />
-                          <span className="text-gray-700">
+                          <span className="text-gray-500">
                             <strong>Domain:</strong> {proposal.domain}
                           </span>
                         </div>
                         <div className="space-y-1">
                           {proposal.budget && (
                             <>
-                              <span className="text-gray-700">
+                              <span className="text-gray-500">
                                 <strong>Budget:</strong> ₹{proposal.budget.toLocaleString()}
                               </span>
                               <br />
                             </>
                           )}
                           {proposal.createdAt && (
-                            <span className="text-gray-700">
+                            <span className="text-gray-500">
                               <strong>Submitted:</strong> {new Date(proposal.createdAt).toLocaleDateString()}
                             </span>
                           )}
@@ -839,7 +839,7 @@ function DashboardContent() {
                         proposal.status === 'under_review' ? 'bg-yellow-100 text-yellow-800' :
                         proposal.status === 'assigned_to_staff' ? 'bg-orange-100 text-orange-800' :
                         proposal.status === 'submitted' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
+                        'bg-gray-100 text-gray-500'
                       }`}>
                         {proposal.status?.replace('_', ' ')?.toUpperCase() || 'SUBMITTED'}
                       </span>
@@ -1058,15 +1058,94 @@ function DashboardContent() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
-
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          {isUser() && renderUserDashboard()}
-          {isReviewer() && renderReviewerDashboard()}
-          {isStaff() && renderStaffDashboard()}
+      {/* Full-width Header Section */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 min-h-[280px]">
+        {/* Animated geometric patterns */}
+        <div className="absolute inset-0">
+          <div className="absolute top-6 left-10 w-12 h-12 border border-blue-400/30 rounded-full animate-pulse"></div>
+          <div className="absolute top-20 right-20 w-10 h-10 border border-indigo-400/20 rounded-lg rotate-45 animate-spin-slow"></div>
+          <div className="absolute bottom-12 left-32 w-8 h-8 bg-blue-500/10 rounded-full animate-bounce"></div>
+          <div className="absolute top-12 right-40 w-4 h-4 bg-indigo-400/20 rounded-full animate-ping"></div>
         </div>
-      </main>
+        
+        {/* Overlay gradient */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
+        
+        {/* Header Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-10">
+          <div className="group">
+            <div className="flex items-center mb-5">
+              <div className="relative">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-2xl group-hover:shadow-orange-500/25 transition-all duration-500 group-hover:scale-110">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+              </div>
+              
+              <div className="ml-6">
+                <div className="flex items-center mb-2">
+                  <h1 className="text-white text-4xl font-black tracking-tight bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+                    Research Dashboard
+                  </h1>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse mr-3"></div>
+                    <span className="text-blue-100 font-semibold text-lg">Welcome back, {user?.name}</span>
+                  </div>
+                  <div className="h-4 w-px bg-blue-300/50"></div>
+                  <span className="text-blue-200 font-medium text-sm">NaCCER Research Portal</span>
+                </div>
+                <div className="flex items-center gap-4 mt-2 text-sm text-blue-200">
+                  <span>Active Proposals: {proposals.length}</span>
+                  <span>•</span>
+                  <span>User ID: {user?.id || 'RSC001'}</span>
+                  <span>•</span>
+                  <span className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    Research Portal Active
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            {/* PRISM Banner */}
+            <div className="bg-orange-600 backdrop-blur-md rounded-2xl p-4 border border-orange-300/40 shadow-2xl hover:shadow-orange-500/20 transition-all duration-300">
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 bg-gradient-to-br from-white to-orange-50 rounded-lg flex items-center justify-center shadow-lg overflow-hidden border border-orange-200/50">
+                    <img 
+                      src="/images/prism brand logo.png" 
+                      alt="PRISM Logo" 
+                      className="w-10 h-10 object-contain"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <h2 className="text-white font-bold text-xl mb-1 flex items-center">
+                    <span className="text-white drop-shadow-md tracking-wide">PRISM</span>
+                    <div className="ml-3 px-2 py-0.5 bg-gradient-to-r from-blue-400/30 to-purple-400/30 rounded-full flex items-center justify-center border border-blue-300/40 backdrop-blur-sm">
+                      <div className="w-1.5 h-1.5 bg-blue-300 rounded-full mr-1.5 animate-pulse"></div>
+                      <span className="text-white text-xs font-semibold drop-shadow-sm">DASHBOARD</span>
+                    </div>
+                  </h2>
+                  <p className="text-orange-50 text-sm leading-relaxed font-medium opacity-95 drop-shadow-sm">
+                    Proposal Review & Innovation Support Mechanism for Department of Coal's Advanced Research Platform
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Container */}
+      <div className="max-w-7xl mx-auto px-6 py-8 relative">
+        {isUser() && renderUserDashboard()}
+        {isReviewer() && renderReviewerDashboard()}
+        {isStaff() && renderStaffDashboard()}
+      </div>
     </div>
   );
 }

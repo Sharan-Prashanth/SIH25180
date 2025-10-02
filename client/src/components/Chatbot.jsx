@@ -1,21 +1,43 @@
 import { useState, useEffect, useRef } from "react";
 
-export default function Chatbot({ showSaarthi, setShowSaarthi }) {
-  console.log('Chatbot render - showSaarthi:', showSaarthi);
+export default function Chatbot({ showSaarthi, setShowSaarthi, showVersionHistory, setShowVersionHistory, context, proposalData, onClose }) {
+  console.log('Chatbot render - showSaarthi:', showSaarthi, 'context:', context);
   
-  // Chat State
-  const [chatMessages, setChatMessages] = useState([
-    { 
-      type: 'bot', 
-      text: 'नमस्कार! स्वागतम्! Welcome! I\'m SAARTHI, your intelligent multilingual AI research assistant. I support Hindi, English, Tamil, Telugu, Bengali, Marathi, Gujarati, Punjabi, Kannada, Malayalam, Odia, and Assamese for comprehensive assistance.',
-      timestamp: new Date().toLocaleTimeString()
-    },
-    {
-      type: 'bot',
-      text: 'I can assist you with:\n• Advanced research methodology design\n• Coal technology innovation strategies\n• Budget optimization and resource allocation\n• Technical writing and documentation\n• NaCCER compliance and S&T guidelines\n• Multi-institutional collaboration frameworks\n\nWhat specific aspect of your proposal would you like to explore?',
-      timestamp: new Date().toLocaleTimeString()
+  // Internal state for reviewer mode
+  const [isVisible, setIsVisible] = useState(context === 'reviewer' ? true : showSaarthi);
+  
+  // Chat State - Different messages for reviewer context
+  const getInitialMessages = () => {
+    if (context === 'reviewer') {
+      return [
+        { 
+          type: 'bot', 
+          text: 'नमस्कार! Welcome! I\'m your AI Review Assistant, specialized in helping reviewers evaluate research proposals effectively. I support multiple Indian languages for comprehensive assistance.',
+          timestamp: new Date().toLocaleTimeString()
+        },
+        {
+          type: 'bot',
+          text: 'I can assist you with:\n• Proposal quality assessment\n• Technical merit evaluation\n• Budget analysis and optimization\n• Compliance with S&T guidelines\n• Comparative research analysis\n• Review documentation\n\nWhat aspect of this proposal would you like me to help evaluate?',
+          timestamp: new Date().toLocaleTimeString()
+        }
+      ];
+    } else {
+      return [
+        { 
+          type: 'bot', 
+          text: 'नमस्कार! स्वागतम्! Welcome! I\'m SAARTHI, your intelligent multilingual AI research assistant. I support Hindi, English, Tamil, Telugu, Bengali, Marathi, Gujarati, Punjabi, Kannada, Malayalam, Odia, and Assamese for comprehensive assistance.',
+          timestamp: new Date().toLocaleTimeString()
+        },
+        {
+          type: 'bot',
+          text: 'I can assist you with:\n• Advanced research methodology design\n• Coal technology innovation strategies\n• Budget optimization and resource allocation\n• Technical writing and documentation\n• NaCCER compliance and S&T guidelines\n• Multi-institutional collaboration frameworks\n\nWhat specific aspect of your proposal would you like to explore?',
+          timestamp: new Date().toLocaleTimeString()
+        }
+      ];
     }
-  ]);
+  };
+  
+  const [chatMessages, setChatMessages] = useState(getInitialMessages());
   const [currentMessage, setCurrentMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [shouldBounce, setShouldBounce] = useState(false);
@@ -351,7 +373,7 @@ export default function Chatbot({ showSaarthi, setShowSaarthi }) {
   return (
     <>
       {/* Floating Toggle Button */}
-      {!showSaarthi && (
+      {!(context === 'reviewer' ? isVisible : showSaarthi) && (
         <div className="fixed bottom-8 right-8 z-50">
           <div className={`relative group ${shouldBounce ? 'animate-delayed-bounce' : ''}`}>
             <button
@@ -360,7 +382,15 @@ export default function Chatbot({ showSaarthi, setShowSaarthi }) {
                 e.stopPropagation();
                 console.log('SAARTHI button clicked');
                 setShouldBounce(false); // Stop bouncing when clicked
-                setShowSaarthi(true);
+                if (context === 'reviewer') {
+                  setIsVisible(true);
+                } else if (setShowSaarthi) {
+                  setShowSaarthi(true);
+                }
+                // Close version history if it's open
+                if (showVersionHistory && setShowVersionHistory) {
+                  setShowVersionHistory(false);
+                }
               }}
               className="group relative overflow-hidden w-16 h-16 bg-gradient-to-br from-orange-500 via-white to-green-500 hover:from-orange-600 hover:to-green-600 rounded-2xl shadow-2xl flex items-center justify-center transition-all duration-500 hover:scale-110 hover:rotate-3 transform border-4 border-white cursor-pointer z-30"
               style={{
@@ -386,7 +416,7 @@ export default function Chatbot({ showSaarthi, setShowSaarthi }) {
             </button>
             
             {/* Enhanced Tooltip */}
-            <div className="absolute bottom-full right-0 mb-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-y-0 translate-y-2 pointer-events-none">
+            <div className="absolute bottom-full right-0 mb-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-y-0 translate-y-2 pointer-events-none z-60">
               <div className="bg-black/90 text-white px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap shadow-2xl backdrop-blur-sm border border-white/10">
                 <div className="flex items-center gap-2">
                   <span>Launch SAARTHI AI</span>
@@ -412,7 +442,7 @@ export default function Chatbot({ showSaarthi, setShowSaarthi }) {
       )}
 
       {/* SAARTHI Chat Window */}
-      {showSaarthi && (
+      {(context === 'reviewer' ? isVisible : showSaarthi) && (
         <div className="saarthi-chat-window fixed top-0 right-0 w-1/3 h-full bg-white border-l-2 border-blue-300 shadow-2xl z-50 flex flex-col animate-slide-in-right">
           {/* Chat Header */}
           <div className="bg-gradient-to-r from-slate-800 via-blue-800 to-indigo-800 p-4 border-b border-blue-300">
@@ -428,21 +458,33 @@ export default function Chatbot({ showSaarthi, setShowSaarthi }) {
                 {/* Green dot positioned outside the logo container */}
                 <div className="absolute top-5 left-12 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-lg animate-blink-green" style={{ zIndex: 1000 }}></div>
                 <div>
-                  <h3 className="font-bold text-white text-lg">SAARTHI AI</h3>
-                  <p className="text-sm text-blue-100">Research Assistant</p>
+                  <h3 className="font-bold text-white text-lg">
+                    {context === 'reviewer' ? 'AI Review Assistant' : 'SAARTHI AI'}
+                  </h3>
+                  <p className="text-sm text-blue-100">
+                    {context === 'reviewer' ? 'Proposal Evaluator' : 'Research Assistant'}
+                  </p>
                 </div>
               </div>
               <button
                 onClick={() => {
                   console.log('Close button clicked');
-                  const chatWindow = document.querySelector('.saarthi-chat-window');
-                  if (chatWindow) {
-                    chatWindow.classList.add('animate-slide-out-left');
-                    setTimeout(() => {
-                      setShowSaarthi(false);
-                    }, 300);
+                  if (context === 'reviewer') {
+                    if (onClose) {
+                      onClose();
+                    } else {
+                      setIsVisible(false);
+                    }
                   } else {
-                    setShowSaarthi(false);
+                    const chatWindow = document.querySelector('.saarthi-chat-window');
+                    if (chatWindow) {
+                      chatWindow.classList.add('animate-slide-out-left');
+                      setTimeout(() => {
+                        if (setShowSaarthi) setShowSaarthi(false);
+                      }, 300);
+                    } else {
+                      if (setShowSaarthi) setShowSaarthi(false);
+                    }
                   }
                 }}
                 className="text-blue-100 hover:text-white p-2 rounded-full hover:bg-blue-700/50 transition-colors"
