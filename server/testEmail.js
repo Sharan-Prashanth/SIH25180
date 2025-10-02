@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import emailService from './services/emailService.js';
 
+// Load environment variables first
 dotenv.config();
 
 async function testEmailService() {
@@ -11,6 +12,10 @@ async function testEmailService() {
   console.log('   USER:', process.env.EMAIL_USER);
   console.log('   PASS:', process.env.EMAIL_PASS ? `***configured*** (length: ${process.env.EMAIL_PASS.length})` : 'NOT SET');
   console.log('   PASS VALUE:', process.env.EMAIL_PASS ? `"${process.env.EMAIL_PASS}"` : 'NOT SET');
+  
+  // Reinitialize email service to ensure fresh config
+  console.log('\n🔄 Reinitializing email service...');
+  emailService.reinitialize();
   
   try {
     // Test connection

@@ -6,6 +6,7 @@ import connectDB from "./config/db..js";
 import authRoutes from "./routes/authRoutes.js";
 import proposalRoutes from "./routes/proposalRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
+import collaborationRoutes from "./routes/collaborationRoutes.js";
 
 import { errorHandler } from "./middleware/errorHandler.js";
 
@@ -74,6 +75,7 @@ app.get('/api/test-email', async (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/proposals", proposalRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/collaboration", collaborationRoutes);
 
 // Global error handler
 app.use(errorHandler);

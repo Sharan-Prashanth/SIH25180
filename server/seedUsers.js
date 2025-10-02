@@ -43,7 +43,7 @@ const seedUsers = async () => {
         expertise: ['Technical Analysis', 'Research Methodology', 'Data Analysis']
       },
       {
-        name: 'Dr. Admin Reviewer',
+        name: 'Dr. Senior Reviewer',
         email: 'admin@test.com',
         password: 'admin123',
         role: 'reviewer',
@@ -101,7 +101,7 @@ const seedUsers = async () => {
     console.log('Regular User: user@test.com / password123');
     console.log('Reviewer: reviewer@test.com / password123');
     console.log('Staff: staff@test.com / password123');
-    console.log('Admin: admin@test.com / admin123');
+    console.log('Senior Reviewer: admin@test.com / admin123');
 
     console.log('\n✨ Database seeded successfully!');
     

@@ -1,25 +1,108 @@
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 export default function Home() {
   const [activeInfoTab, setActiveInfoTab] = useState('whats-new');
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Array of banner images
+  const bannerImages = [
+    "/images/banner image.jpg", // Default image (first)
+    "/images/aatai1.jpeg",
+    "/images/aatai2.png"
+  ];
+
+  // Auto-switch images every 4 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => 
+        (prevIndex + 1) % bannerImages.length
+      );
+    }, 4000); // 4 seconds
+
+    return () => clearInterval(interval);
+  }, [bannerImages.length]);
+
+  // Navigate to previous image
+  const goToPrevious = () => {
+    setCurrentImageIndex((prevIndex) => 
+      prevIndex === 0 ? bannerImages.length - 1 : prevIndex - 1
+    );
+  };
+
+  // Navigate to next image
+  const goToNext = () => {
+    setCurrentImageIndex((prevIndex) => 
+      (prevIndex + 1) % bannerImages.length
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pt-16">
       <Navbar />
       
       {/* Hero Banner Section - Full Banner Display */}
-      <section className="relative bg-gray-50 border-b border-gray-200 h-96 md:h-[500px]">
-        {/* Full Banner Image */}
+      <section className="relative bg-gray-50 border-b border-gray-200 h-96 md:h-[500px] overflow-hidden">
+        {/* Full Banner Image with Transition */}
         <div className="absolute inset-0 z-0">
-          <img 
-            src="/images/banner image.jpg" 
-            alt="Government Banner" 
-            className="w-full h-full object-cover"
-          />
+          {bannerImages.map((image, index) => (
+            <div
+              key={index}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              <img 
+                src={image}   
+                alt={`Government Banner ${index + 1}`} 
+                className={`w-full h-full ${
+                  image.includes('aatai1.jpeg') || image.includes('aatai4.jpeg') || image.includes('aatai5.jpeg')
+                    ? 'object-cover object-top bg-gray-100' 
+                    : 'object-cover'
+                }`}
+              />
+            </div>
+          ))}
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
+        </div>
+
+        {/* Navigation Arrows */}
+        <button
+          onClick={goToPrevious}
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-300 hover:scale-110"
+          aria-label="Previous image"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        <button
+          onClick={goToNext}
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-300 hover:scale-110"
+          aria-label="Next image"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+
+        {/* Image Indicators */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex space-x-2">
+          {bannerImages.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentImageIndex(index)}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                index === currentImageIndex 
+                  ? 'bg-white scale-110' 
+                  : 'bg-white/50 hover:bg-white/75'
+              }`}
+              aria-label={`Switch to image ${index + 1}`}
+            />
+          ))}
         </div>
 
         {/* Optional Banner Title Overlay */}
@@ -61,10 +144,10 @@ export default function Home() {
               </div>
               
               <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200 mb-8">
-                <h1 className="text-3xl lg:text-4xl font-bold text-black mb-4 leading-tight">
+                <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4 leading-tight">
                   NaCCER Research Portal
                 </h1>
-                <p className="text-lg text-black leading-relaxed">
+                <p className="text-lg text-gray-900 font-semibold leading-relaxed">
                   National Coal Committee for Environmental Research - Advanced R&D Proposal Management System for sustainable coal research and innovation.
                 </p>
               </div>
@@ -117,23 +200,23 @@ export default function Home() {
                   {activeInfoTab === 'whats-new' && (
                     <div className="space-y-3">
                       <div className="text-sm">
-                        <p className="text-black mb-1">New AI-powered proposal evaluation system launched successfully.</p>
-                        <p className="text-xs text-black">25/09/2025</p>
+                        <p className="text-gray-900 font-semibold mb-1">New AI-powered proposal evaluation system launched successfully.</p>
+                        <p className="text-xs text-gray-700 font-medium">25/09/2025</p>
                       </div>
                       
                       <div className="text-sm">
-                        <p className="text-black mb-1">Enhanced collaboration features now available for all users.</p>
-                        <p className="text-xs text-black">20/09/2025</p>
+                        <p className="text-gray-900 font-semibold mb-1">Enhanced collaboration features now available for all users.</p>
+                        <p className="text-xs text-gray-700 font-medium">20/09/2025</p>
                       </div>
                       
                       <div className="text-sm">
-                        <p className="text-black mb-1">Updated R&D proposal submission guidelines published.</p>
-                        <p className="text-xs text-black">15/09/2025</p>
+                        <p className="text-gray-900 font-semibold mb-1">Updated R&D proposal submission guidelines published.</p>
+                        <p className="text-xs text-gray-700 font-medium">15/09/2025</p>
                       </div>
                       
                       <div className="text-sm">
-                        <p className="text-black mb-1">Digital transformation initiatives in mining sector expanded.</p>
-                        <p className="text-xs text-black">12/09/2025</p>
+                        <p className="text-gray-900 font-semibold mb-1">Digital transformation initiatives in mining sector expanded.</p>
+                        <p className="text-xs text-gray-700 font-medium">12/09/2025</p>
                       </div>
                     </div>
                   )}
@@ -141,23 +224,23 @@ export default function Home() {
                   {activeInfoTab === 'important-info' && (
                     <div className="space-y-3">
                       <div className="text-sm">
-                        <p className="text-black mb-1">System maintenance scheduled for Oct 1, 2025</p>
-                        <p className="text-xs text-red-600">Critical Notice</p>
+                        <p className="text-gray-900 font-semibold mb-1">System maintenance scheduled for Oct 1, 2025</p>
+                        <p className="text-xs text-red-600 font-bold">Critical Notice</p>
                       </div>
                       
                       <div className="text-sm">
-                        <p className="text-black mb-1">New compliance requirements for research proposals</p>
-                        <p className="text-xs text-blue-600">Policy Update</p>
+                        <p className="text-gray-900 font-semibold mb-1">New compliance requirements for research proposals</p>
+                        <p className="text-xs text-blue-600 font-bold">Policy Update</p>
                       </div>
                       
                       <div className="text-sm">
-                        <p className="text-black mb-1">Deadline extension for pending submissions until Oct 15, 2025</p>
-                        <p className="text-xs text-red-600">Submission Alert</p>
+                        <p className="text-gray-900 font-semibold mb-1">Deadline extension for pending submissions until Oct 15, 2025</p>
+                        <p className="text-xs text-red-600 font-bold">Submission Alert</p>
                       </div>
                       
                       <div className="text-sm">
-                        <p className="text-black mb-1">Mandatory training session for new reviewers on Oct 5, 2025</p>
-                        <p className="text-xs text-green-600">Training Notice</p>
+                        <p className="text-gray-900 font-semibold mb-1">Mandatory training session for new reviewers on Oct 5, 2025</p>
+                        <p className="text-xs text-green-600 font-bold">Training Notice</p>
                       </div>
                     </div>
                   )}
@@ -214,7 +297,7 @@ export default function Home() {
                 </svg>
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-2">500+</div>
-              <div className="text-sm font-medium text-black">Active Proposals</div>
+              <div className="text-sm font-bold text-gray-900">Active Proposals</div>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow animate-fade-in-up animation-delay-200">
               <div className="w-12 h-12 bg-green-100 mx-auto mb-4 rounded flex items-center justify-center">
@@ -223,7 +306,7 @@ export default function Home() {
                 </svg>
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-2">1200+</div>
-              <div className="text-sm font-medium text-black">Researchers</div>
+              <div className="text-sm font-bold text-gray-900">Researchers</div>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow animate-fade-in-up animation-delay-400">
               <div className="w-12 h-12 bg-purple-100 mx-auto mb-4 rounded flex items-center justify-center">
@@ -232,7 +315,7 @@ export default function Home() {
                 </svg>
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-2">300+</div>
-              <div className="text-sm font-medium text-black">Approved Projects</div>
+              <div className="text-sm font-bold text-gray-900">Approved Projects</div>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow animate-fade-in-up animation-delay-600">
               <div className="w-12 h-12 bg-orange-100 mx-auto mb-4 rounded flex items-center justify-center">
@@ -241,7 +324,7 @@ export default function Home() {
                 </svg>
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-2">150+</div>
-              <div className="text-sm font-medium text-black">Expert Reviewers</div>
+              <div className="text-sm font-bold text-gray-900">Expert Reviewers</div>
             </div>
           </div>
         </div>
@@ -252,10 +335,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col lg:flex-row items-center gap-12">
             <div className="flex-1">
-              <h2 className="text-4xl font-bold text-gray-900 mb-8">
+              <h2 className="text-4xl font-bold text-gray-900 mb-8 border-b-4 border-blue-600 pb-4">
                 About Ministry/Department
               </h2>
-              <div className="text-lg text-black leading-relaxed space-y-4">
+              <div className="text-lg text-gray-900 font-medium leading-relaxed space-y-4">
                 <p>
                   We are dedicated to serving the public by advancing coal research and development initiatives in India. 
                   The Ministry of Coal is committed to sustainable mining practices, environmental protection, and 
@@ -301,7 +384,7 @@ export default function Home() {
       {/* Our Ministers Section */}
       <section className="py-20 bg-blue-900 text-white">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center text-white mb-16 animate-fade-in-up">Our Ministers</h2>
+          <h2 className="text-4xl font-bold text-center text-white mb-16 animate-fade-in-up border-b-4 border-yellow-500 pb-4 inline-block">Our Ministers</h2>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Prime Minister */}
@@ -380,7 +463,7 @@ export default function Home() {
       {/* Our Services Section */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-4">Our Services</h2>
+          <h2 className="text-4xl font-bold text-center text-gray-900 mb-4 border-b-4 border-green-600 pb-4 inline-block">Our Services</h2>
           
           {/* Service Categories */}
           <div className="flex justify-center mb-12">
@@ -409,8 +492,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Proposal Submission</h3>
-                <p className="text-sm text-black font-medium">Submit research proposals online</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Proposal Submission</h3>
+                <p className="text-sm text-gray-900 font-semibold">Submit research proposals online</p>
               </div>
 
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center hover:shadow-md transition-shadow animate-fade-in-up animation-delay-200">
@@ -419,8 +502,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Expert Review</h3>
-                <p className="text-sm text-black font-medium">AI-powered peer review system</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Expert Review</h3>
+                <p className="text-sm text-gray-900 font-semibold">AI-powered peer review system</p>
               </div>
 
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center hover:shadow-md transition-shadow animate-fade-in-up animation-delay-400">
@@ -429,8 +512,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Progress Tracking</h3>
-                <p className="text-sm text-black font-medium">Real-time project monitoring</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Progress Tracking</h3>
+                <p className="text-sm text-gray-900 font-semibold">Real-time project monitoring</p>
               </div>
 
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center hover:shadow-md transition-shadow animate-fade-in-up animation-delay-600">
@@ -439,8 +522,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Collaboration</h3>
-                <p className="text-sm text-black font-medium">Multi-stakeholder platform</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Collaboration</h3>
+                <p className="text-sm text-gray-900 font-semibold">Multi-stakeholder platform</p>
               </div>
             </div>
 
@@ -451,8 +534,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Literature Support</h3>
-                <p className="text-sm text-black font-medium">Access to research databases</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Literature Support</h3>
+                <p className="text-sm text-gray-900 font-semibold">Access to research databases</p>
               </div>
 
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center hover:shadow-md transition-shadow animate-fade-in-up animation-delay-200">
@@ -461,8 +544,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Lab Resources</h3>
-                <p className="text-sm text-black font-medium">Equipment and facility access</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Lab Resources</h3>
+                <p className="text-sm text-gray-900 font-semibold">Equipment and facility access</p>
               </div>
 
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center hover:shadow-md transition-shadow animate-fade-in-up animation-delay-400">
@@ -472,8 +555,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Innovation Hub</h3>
-                <p className="text-sm text-black font-medium">Technology incubation support</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Innovation Hub</h3>
+                <p className="text-sm text-gray-900 font-semibold">Technology incubation support</p>
               </div>
 
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center hover:shadow-md transition-shadow animate-fade-in-up animation-delay-600">
@@ -482,8 +565,90 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Funding Support</h3>
-                <p className="text-sm text-black font-medium">Grant and financial assistance</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Funding Support</h3>
+                <p className="text-sm text-gray-900 font-semibold">Grant and financial assistance</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Vision & Mission Section */}
+      <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Vision Box */}
+            <div className="vision-mission-box group relative bg-white rounded-lg shadow-lg border border-gray-200 p-8 hover:shadow-xl transition-all duration-700 cursor-pointer overflow-hidden h-64 hover:h-auto">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+              
+              <div className="relative z-10 h-full flex flex-col">
+                <div className="flex items-center justify-center h-full w-full px-4 py-8 group-hover:h-auto group-hover:justify-start group-hover:mb-6 group-hover:px-0 group-hover:py-0 transition-all duration-700">
+                  <h2 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800 group-hover:text-white group-hover:text-3xl group-hover:bg-none transition-all duration-700 text-center tracking-wider leading-none">
+                    VISION
+                  </h2>
+                </div>
+                
+                <div className="space-y-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-200 overflow-hidden">
+                  <p className="text-lg font-semibold text-white">
+                    To Secure availability of Coal to meet the demand of various sectors of the economy in a eco-friendly, sustainable and cost effective manner.
+                  </p>
+                  
+                  <div className="text-gray-100">
+                    <p className="font-medium mb-3 text-white">Ministry of Coal is committed to:</p>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-white rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                        <span className="text-gray-100">Augment production through Government companies as well as captive mining route by adopting state-of-the-art and clean coal technologies with a view to improve productivity, safety, quality and ecology.</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-white rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                        <span className="text-gray-100">Augment the resource base by enhancing exploration efforts with thrust on increasing proved resources.</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-white rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                        <span className="text-gray-100">Facilitate development of necessary infrastructure for prompt evacuation of coal.</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Mission Box */}
+            <div className="vision-mission-box group relative bg-white rounded-lg shadow-lg border border-gray-200 p-8 hover:shadow-xl transition-all duration-700 cursor-pointer overflow-hidden h-64 hover:h-auto">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-600 to-green-700 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+              
+              <div className="relative z-10 h-full flex flex-col">
+                <div className="flex items-center justify-center h-full w-full px-4 py-8 group-hover:h-auto group-hover:justify-start group-hover:mb-6 group-hover:px-0 group-hover:py-0 transition-all duration-700">
+                  <h2 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-green-800 group-hover:text-white group-hover:text-3xl group-hover:bg-none transition-all duration-700 text-center tracking-wider leading-none">
+                    MISSION
+                  </h2>
+                </div>
+                
+                <div className="space-y-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-200 overflow-hidden">
+                  <div className="text-gray-100">
+                    <ul className="space-y-3">
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-white rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                        <span className="text-sm text-gray-100">To augment production through Government companies as well as captive mining route by adopting state-of-the-art and clean coal technologies with a view to improve productivity, safety, quality and ecology.</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-white rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                        <span className="text-sm text-gray-100">To augment the resource base by enhancing exploration efforts with thrust on increasing proved resources.</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-white rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                        <span className="text-sm text-gray-100">To facilitate development of necessary infrastructure for prompt evacuation of coal.</span>
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  <div className="mt-6 p-4 bg-white/10 rounded-lg">
+                    <p className="text-sm text-gray-200 font-medium">
+                      Driving sustainable development in India's coal sector through innovation, technology, and environmental stewardship.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -493,7 +658,7 @@ export default function Home() {
       {/* Gallery Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-12 animate-fade-in-up">Gallery</h2>
+          <h2 className="text-4xl font-bold text-center text-gray-900 mb-12 animate-fade-in-up border-b-4 border-purple-600 pb-4 inline-block">Gallery</h2>
           
           {/* Gallery Categories */}
           <div className="flex justify-start mb-8 gap-4">
@@ -878,8 +1043,8 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row items-center gap-12">
             {/* Left Content */}
             <div className="flex-1 animate-fade-in-up">
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">Social Media</h2>
-              <p className="text-lg text-black mb-8 font-medium">
+              <h2 className="text-4xl font-bold text-gray-900 mb-6 border-b-4 border-red-600 pb-4 inline-block">Social Media</h2>
+              <p className="text-lg text-gray-900 font-semibold mb-8">
                 Explore our social media presence and stay updated with the latest developments 
                 in coal research and sustainable mining practices.
               </p>
@@ -927,14 +1092,14 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="p-4 flex-1">
-                      <p className="text-sm text-black mb-3 font-medium">
+                      <p className="text-sm text-gray-900 mb-3 font-semibold">
                         Latest updates on sustainable coal research and clean energy initiatives. 
                         Building a greener future for India. 🇮🇳
                       </p>
-                      <div className="text-xs text-black space-y-1">
-                        <div>📍 New Delhi, India</div>
-                        <div>🔗 <a href="https://www.coal.nic.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">coal.nic.in</a></div>
-                        <div className="flex gap-4 mt-2 font-medium">
+                      <div className="text-xs text-gray-800 space-y-1">
+                        <div className="font-medium">📍 New Delhi, India</div>
+                        <div className="font-medium">🔗 <a href="https://www.coal.nic.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-bold">coal.nic.in</a></div>
+                        <div className="flex gap-4 mt-2 font-bold text-gray-900">
                           <span>52 Following</span>
                           <span>364.5K Followers</span>
                         </div>

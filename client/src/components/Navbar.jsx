@@ -2,17 +2,53 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useAuth, ROLES } from "../context/AuthContext";
 
-export default function Navbar() {
+export default function Navbar({ variant = "default" }) {
   const { user, logout, isUser, isReviewer, isStaff, loading } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
   const [fontSize, setFontSize] = useState(16);
+  const [isScrolled, setIsScrolled] = useState(false);
   const userMenuRef = useRef(null);
   const languageMenuRef = useRef(null);
 
   // Debug: Log user state
   console.log("Navbar - User:", user, "Loading:", loading);
+
+  // Get navbar styling based on variant
+  const getNavbarStyles = () => {
+    switch (variant) {
+      case "profile":
+        return {
+          bg: isScrolled 
+            ? "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 backdrop-blur-lg shadow-xl" 
+            : "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-lg",
+          text: "text-white",
+          border: "border-white/20"
+        };
+      default:
+        return {
+          bg: isScrolled 
+            ? "bg-gradient-to-r from-orange-500 to-orange-600 backdrop-blur-lg shadow-xl" 
+            : "bg-white shadow-lg",
+          text: isScrolled ? "text-black" : "text-gray-900",
+          border: isScrolled ? "border-orange-300" : "border-gray-200"
+        };
+    }
+  };
+
+  const navStyles = getNavbarStyles();
+
+  // Scroll detection for glassmorphism effect
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsScrolled(scrollTop > 20);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Close menus when clicking outside
   useEffect(() => {
@@ -72,11 +108,11 @@ export default function Navbar() {
   return (
     <>
       {/* Combined Government Header and Main Navbar */}
-      <nav className="relative bg-orange-700 text-white shadow-2xl border-b border-orange-800">
+      <nav className={`fixed top-0 left-0 right-0 z-50 shadow-2xl transition-all duration-500 ${navStyles.bg} ${navStyles.text} border-b ${navStyles.border}`}>
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/5 rounded-full animate-float"></div>
-          <div className="absolute top-0 -left-5 w-24 h-24 bg-purple-500/5 rounded-full animate-float animation-delay-1000"></div>
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full animate-float"></div>
+          <div className="absolute top-0 -left-5 w-24 h-24 bg-white/5 rounded-full animate-float animation-delay-1000"></div>
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -85,38 +121,44 @@ export default function Navbar() {
             <Link href={user ? "/dashboard" : "/"}>
               <div className="flex items-center gap-6 cursor-pointer group">
                 {/* Government Section */}
-                <div className="flex items-center gap-4 text-white text-sm">
-                  <a href="https://www.india.gov.in/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:bg-white/10 px-2 py-1 rounded transition-colors">
+                <div className={`flex items-center gap-4 text-sm font-semibold ${navStyles.text}`}>
+                  <a href="https://www.india.gov.in/" target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 px-2 py-1 rounded transition-colors ${
+                    variant === "profile" ? 'hover:bg-white/20' : (isScrolled ? 'hover:bg-white/10' : 'hover:bg-black/20')
+                  }`}>
                     <img 
                       src="/images/GOI logo.png" 
                       alt="Government of India Logo" 
-                      className="w-8 h-8 rounded"
+                      className="w-6 h-10 rounded"
                     />
                     <div>
                       <div className="font-medium">भारत सरकार</div>
                       <div className="font-medium text-xs">Government of India</div>
                     </div>
                   </a>
-                  <div className="w-px h-8 bg-white/30"></div>
+                  <div className={`w-px h-8 ${variant === "profile" ? 'bg-white/30' : (isScrolled ? 'bg-white/30' : 'bg-gray-600/60')}`}></div>
                   <div className="flex items-center gap-3">
-                    <a href="https://www.coalindia.in/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:bg-white/10 px-2 py-1 rounded transition-colors">
+                    <a href="https://www.coalindia.in/" target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 px-2 py-1 rounded transition-colors ${
+                      variant === "profile" ? 'hover:bg-white/20' : (isScrolled ? 'hover:bg-white/10' : 'hover:bg-black/20')
+                    }`}>
                       <img 
-                        src="/images/coal india logo.webp" 
+                        src="/images/CoalLog4.png" 
                         alt="Coal India Limited" 
-                        className="w-8 h-8 rounded bg-white p-1"
+                        className="w-10 h-12 rounded bg-white object-cover"
                       />
                       <span className="font-medium text-xs">Coal India Limited</span>
                     </a>
-                    <a href="https://www.cmpdi.co.in/en" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:bg-white/10 px-2 py-1 rounded transition-colors">
+                    <a href="https://www.cmpdi.co.in/en" target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 px-2 py-1 rounded transition-colors ${
+                      variant === "profile" ? 'hover:bg-white/20' : (isScrolled ? 'hover:bg-white/10' : 'hover:bg-black/20')
+                    }`}>
                       <img 
                         src="/images/cmpdi logo.jpg" 
                         alt="CMPDI" 
-                        className="w-8 h-8 rounded bg-white p-1"
+                        className="w-20 h-12 rounded bg-white object-cover" 
                       />
                       <span className="font-medium text-xs">CMPDI</span>
                     </a>
                   </div>
-                  <div className="w-px h-8 bg-white/30 mx-2"></div>
+                  <div className={`w-px h-8 mx-2 ${isScrolled ? 'bg-white/30' : 'bg-gray-600/60'}`}></div>
                 </div>
               </div>
             </Link>
@@ -127,14 +169,26 @@ export default function Navbar() {
               <div className="flex items-center gap-2">
                 <button 
                   onClick={decreaseFontSize}
-                  className="w-6 h-6 bg-white/20 hover:bg-white/30 rounded flex items-center justify-center transition-colors"
+                  className={`w-6 h-6 rounded flex items-center justify-center transition-colors font-semibold ${
+                    variant === "profile"
+                      ? 'bg-white/20 hover:bg-white/30 text-white'
+                      : (isScrolled 
+                        ? 'bg-white/20 hover:bg-white/30 text-white' 
+                        : 'bg-gray-900/30 hover:bg-gray-900/40 text-gray-900')
+                  }`}
                   title="Decrease font size"
                 >
                   A-
                 </button>
                 <button 
                   onClick={increaseFontSize}
-                  className="w-6 h-6 bg-white/20 hover:bg-white/30 rounded flex items-center justify-center transition-colors"
+                  className={`w-6 h-6 rounded flex items-center justify-center transition-colors font-semibold ${
+                    variant === "profile"
+                      ? 'bg-white/20 hover:bg-white/30 text-white'
+                      : (isScrolled 
+                        ? 'bg-white/20 hover:bg-white/30 text-white' 
+                        : 'bg-gray-900/30 hover:bg-gray-900/40 text-gray-900')
+                  }`}
                   title="Increase font size"
                 >
                   A+
@@ -145,7 +199,13 @@ export default function Navbar() {
               <div className="relative" ref={languageMenuRef}>
                 <button 
                   onClick={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
-                  className="flex items-center gap-1 hover:bg-white/20 px-2 py-1 rounded transition-colors"
+                  className={`flex items-center gap-1 px-2 py-1 rounded transition-colors font-medium ${
+                    variant === "profile"
+                      ? 'hover:bg-white/20 text-white'
+                      : (isScrolled 
+                        ? 'hover:bg-white/20 text-white' 
+                        : 'hover:bg-gray-900/20 text-gray-900')
+                  }`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
@@ -171,7 +231,7 @@ export default function Navbar() {
                 )}
               </div>
               
-              <div className="w-px h-6 bg-white/30"></div>
+              <div className={`w-px h-6 ${isScrolled ? 'bg-white/30' : 'bg-gray-600/60'}`}></div>
 
               {/* Navigation Menu */}
               <div className="flex items-center gap-6">
@@ -183,33 +243,25 @@ export default function Navbar() {
                   <div className="w-24 h-8 bg-orange-600 rounded animate-pulse"></div>
                 </div>
               ) : user ? (
-                // Logged-in user navigation - only show role-specific and admin links
+                // Logged-in user navigation - only show role-specific links
                 <>
                   <div className="flex items-center gap-6">
                     {/* Reviewer-specific navigation */}
                     {isReviewer() && (
                       <Link 
                         href="/proposal/review" 
-                        className="group flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300 font-medium"
+                        className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-300 font-medium ${
+                          variant === "profile"
+                            ? 'hover:bg-white/20 text-white'
+                            : (isScrolled 
+                              ? 'hover:bg-white/10 text-white' 
+                              : 'hover:bg-gray-900/20 text-gray-900')
+                        }`}
                       >
                         <svg className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         Review Proposals
-                      </Link>
-                    )}
-                    
-                    {/* Staff-specific navigation */}
-                    {isStaff() && (
-                      <Link 
-                        href="/admin" 
-                        className="group flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300 font-medium"
-                      >
-                        <svg className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        Admin Panel
                       </Link>
                     )}
                   </div>
@@ -218,7 +270,11 @@ export default function Navbar() {
                   <div className="relative" ref={userMenuRef}>
                     <button
                       onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                      className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all duration-300 group"
+                      className={`flex items-center gap-3 px-4 py-2 rounded-xl border transition-all duration-300 group ${
+                        isScrolled 
+                          ? 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20' 
+                          : 'bg-black/5 hover:bg-black/10 border-black/10 hover:border-black/20'
+                      }`}
                     >
                       <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
                         <span className="text-black text-sm font-bold">
@@ -226,12 +282,12 @@ export default function Navbar() {
                         </span>
                       </div>
                       <div className="text-left">
-                        <div className="text-sm font-medium">{user?.username || 'User'}</div>
+                        <div className={`text-sm font-medium ${isScrolled ? 'text-black' : 'text-gray-900'}`}>{user?.username || 'User'}</div>
                         <div className="text-xs px-2 py-1 rounded bg-black text-white font-medium">
                           {user?.role || 'Guest'}
                         </div>
                       </div>
-                      <svg className={`w-4 h-4 transition-transform duration-300 ${isUserMenuOpen ? 'rotate-180' : ''} group-hover:scale-110`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className={`w-4 h-4 transition-transform duration-300 ${isUserMenuOpen ? 'rotate-180' : ''} group-hover:scale-110 ${isScrolled ? 'text-black' : 'text-gray-900'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
@@ -281,7 +337,11 @@ export default function Navbar() {
                 // Guest navigation
                 <div className="flex items-center gap-4">
                   <Link href="/login">
-                    <button className="group bg-white hover:bg-gray-100 text-black px-6 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 hover:scale-105">
+                    <button className={`group px-6 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 hover:scale-105 ${
+                      isScrolled 
+                        ? 'bg-gradient-to-r from-orange-700 to-orange-800 hover:from-orange-800 hover:to-orange-900 text-white shadow-lg' 
+                        : 'bg-gray-900 hover:bg-gray-800 text-white shadow-lg'
+                    }`}>
                       <svg className="w-4 h-4 group-hover:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                       </svg>
@@ -289,7 +349,11 @@ export default function Navbar() {
                     </button>
                   </Link>
                   <Link href="/register">
-                    <button className="group border-2 border-white/30 hover:border-white/50 text-white hover:bg-white/10 px-6 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 hover:scale-105">
+                    <button className={`group border-2 px-6 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 hover:scale-105 ${
+                      isScrolled 
+                        ? 'border-orange-700 hover:border-orange-800 text-orange-800 hover:bg-orange-700/10 bg-white/90' 
+                        : 'border-gray-900 hover:border-gray-700 text-gray-900 hover:bg-gray-900/20 shadow-md'
+                    }`}>
                       <svg className="w-4 h-4 group-hover:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                       </svg>
@@ -305,7 +369,9 @@ export default function Navbar() {
             <div className="md:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-white hover:text-blue-300 transition-colors duration-300 p-2"
+                className={`p-2 transition-colors duration-300 ${
+                  isScrolled ? 'text-black hover:text-gray-700' : 'text-gray-900 hover:text-gray-700'
+                }`}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   {isMenuOpen ? (
@@ -321,13 +387,17 @@ export default function Navbar() {
 
         {/* Mobile Navigation Menu */}
         {isMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 bg-orange-700 border-t border-orange-800 shadow-2xl z-50 animate-fade-in-down">
+          <div className={`md:hidden absolute top-full left-0 right-0 shadow-2xl z-50 animate-fade-in-down transition-all duration-500 ${
+            isScrolled 
+              ? 'bg-orange-700 border-t border-orange-800' 
+              : 'bg-white/10 backdrop-blur-lg border-t border-white/20'
+          }`}>
             <div className="px-4 py-6 space-y-4">
               {loading ? (
                 <div className="space-y-2">
-                  <div className="w-full h-8 bg-orange-500 rounded animate-pulse"></div>
-                  <div className="w-3/4 h-8 bg-orange-500 rounded animate-pulse"></div>
-                  <div className="w-1/2 h-8 bg-orange-500 rounded animate-pulse"></div>
+                  <div className={`w-full h-8 rounded animate-pulse ${isScrolled ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
+                  <div className={`w-3/4 h-8 rounded animate-pulse ${isScrolled ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
+                  <div className={`w-1/2 h-8 rounded animate-pulse ${isScrolled ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
                 </div>
               ) : user ? (
                 <>
@@ -338,18 +408,6 @@ export default function Navbar() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         Review Proposals
-                      </div>
-                    </Link>
-                  )}
-                  
-                  {isStaff() && (
-                    <Link href="/admin">
-                      <div className="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors duration-200">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        Admin Panel
                       </div>
                     </Link>
                   )}

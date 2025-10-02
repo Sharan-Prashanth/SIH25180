@@ -16,8 +16,8 @@ export default function ProfilePage() {
   }, [user, loading, router]);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
+    <div className="min-h-screen flex flex-col pt-16 bg-gradient-to-br from-blue-50 to-indigo-50">
+      <Navbar variant="profile" />
       <div className="flex-1">
         <Profile />
       </div>

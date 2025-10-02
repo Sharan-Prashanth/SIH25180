@@ -239,8 +239,9 @@ function ReviewProposalContent() {
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}
                 placeholder="Enter detailed feedback for the author regarding methodology, feasibility, innovation, and recommendations..."
-                className="w-full p-4 border border-slate-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none text-slate-900 bg-white font-medium transition-all duration-300 hover:border-slate-400 resize-none"
+                className="w-full p-4 border border-slate-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none text-black bg-white font-medium transition-all duration-300 hover:border-slate-400 resize-none"
                 rows="6"
+                style={{ color: 'black' }}
               />
               <button
                 onClick={handleSubmitFeedback}
@@ -266,11 +267,12 @@ function ReviewProposalContent() {
               <select
                 value={selectedStaff}
                 onChange={(e) => setSelectedStaff(e.target.value)}
-                className="w-full p-4 border border-slate-300 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none text-slate-900 bg-white font-medium transition-all duration-300 hover:border-slate-400 mb-4"
+                className="w-full p-4 border border-slate-300 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none text-black bg-white font-medium transition-all duration-300 hover:border-slate-400 mb-4"
+                style={{ color: 'black' }}
               >
-                <option value="">Select a staff member</option>
+                <option value="" style={{ color: 'black' }}>Select a staff member</option>
                 {staffMembers.map(staff => (
-                  <option key={staff.id} value={staff.id}>
+                  <option key={staff.id} value={staff.id} style={{ color: 'black' }}>
                     {staff.name} - {staff.expertise}
                   </option>
                 ))}

@@ -56,14 +56,33 @@ export default function Profile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Form submitted with data:', formData);
+    
+    // Basic validation
+    if (!formData.name?.trim()) {
+      setMessage({ type: "error", text: "Name is required" });
+      return;
+    }
+    
+    if (!formData.email?.trim()) {
+      setMessage({ type: "error", text: "Email is required" });
+      return;
+    }
+    
     setUpdateLoading(true);
     setMessage({ type: "", text: "" });
 
     try {
       const token = localStorage.getItem("token");
+      console.log('Token found:', !!token);
       
-      // Add minimum loading time for better UX
-      const updatePromise = fetch("http://localhost:5000/api/auth/profile", {
+      if (!token) {
+        setMessage({ type: "error", text: "Please log in again to update your profile" });
+        setUpdateLoading(false);
+        return;
+      }
+      
+      const response = await fetch("http://localhost:5000/api/auth/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -71,24 +90,24 @@ export default function Profile() {
         },
         body: JSON.stringify(formData)
       });
-      const minLoadingTime = new Promise(resolve => setTimeout(resolve, 2000));
       
-      const [response] = await Promise.all([updatePromise, minLoadingTime]);
       const data = await response.json();
+      console.log('Response received:', response.status, data);
 
       if (response.ok) {
         setMessage({ type: "success", text: "Profile updated successfully!" });
         setIsEditing(false);
-        // Add small delay before reload for user to see success message
+        // Update user context without reload
         setTimeout(() => {
           window.location.reload();
-        }, 1000);
+        }, 1500);
       } else {
+        console.error('Update failed:', data.message);
         setMessage({ type: "error", text: data.message || "Failed to update profile" });
-        setUpdateLoading(false);
       }
     } catch (error) {
-      setMessage({ type: "error", text: "Network error. Please try again." });
+      console.error('Network error:', error);
+      setMessage({ type: "error", text: "Network error. Please check your connection and try again." });
     } finally {
       setUpdateLoading(false);
     }
@@ -96,10 +115,10 @@ export default function Profile() {
 
   const getRoleColor = (role) => {
     switch (role?.toLowerCase()) {
-      case 'user': return 'from-blue-500 to-blue-600';
-      case 'reviewer': return 'from-purple-500 to-purple-600';
-      case 'staff': return 'from-green-500 to-green-600';
-      default: return 'from-slate-500 to-slate-600';
+      case 'user': return 'from-blue-500 to-indigo-600';
+      case 'reviewer': return 'from-purple-500 to-violet-600';
+      case 'staff': return 'from-emerald-500 to-teal-600';
+      default: return 'from-blue-500 to-blue-600';
     }
   };
 
@@ -114,13 +133,13 @@ export default function Profile() {
       case 'reviewer':
         return (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         );
       case 'staff':
         return (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1" />
           </svg>
         );
       default:
@@ -130,10 +149,13 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-slate-600 font-medium">Loading profile...</span>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-b-purple-600 rounded-full animate-spin animation-delay-300"></div>
+          </div>
+          <span className="text-black font-bold">Loading your profile...</span>
         </div>
       </div>
     );
@@ -141,10 +163,15 @@ export default function Profile() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">Access Denied</h2>
-          <p className="text-slate-600">Please log in to view your profile.</p>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center p-8 max-w-md mx-auto">
+          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-red-600 mb-2">Access Denied</h2>
+          <p className="text-black font-bold">Please log in to view your profile.</p>
         </div>
       </div>
     );
@@ -156,212 +183,319 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Profile Header */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-8">
-          <div className={`bg-gradient-to-r ${getRoleColor(user.role)} px-6 py-8`}>
-            <div className="flex flex-col sm:flex-row items-center gap-6">
-              {/* Avatar */}
-              <div className="relative">
-                <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center text-white text-2xl font-bold backdrop-blur-sm border-4 border-white/30">
-                  {user.profilePicture ? (
-                    <img 
-                      src={user.profilePicture} 
-                      alt={user.name} 
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    user.name?.charAt(0)?.toUpperCase()
-                  )}
+    <div className="min-h-screen bg-white">
+      {/* Modern Hero Section */}
+      <div className="relative bg-gradient-to-br from-slate-50 via-blue-50/30 to-white py-12 px-4 sm:px-6 lg:px-8">
+        {/* Decorative Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400/10 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400/10 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="relative max-w-7xl mx-auto">
+          {/* Profile Header Card */}
+          <div className="bg-white rounded-3xl shadow-xl border border-blue-200 p-8 md:p-12">
+            <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8">
+              {/* Avatar Section */}
+              <div className="relative group">
+                <div className="relative">
+                  <div className={`w-32 h-32 bg-gradient-to-br ${getRoleColor(user.role)} rounded-2xl flex items-center justify-center text-white text-4xl font-bold shadow-2xl transform group-hover:scale-105 transition-all duration-300`}>
+                    {user.profilePicture ? (
+                      <img 
+                        src={user.profilePicture} 
+                        alt={user.name} 
+                        className="w-full h-full rounded-2xl object-cover"
+                      />
+                    ) : (
+                      user.name?.charAt(0)?.toUpperCase()
+                    )}
+                  </div>
+                  <div className={`absolute -bottom-3 -right-3 w-12 h-12 bg-gradient-to-br ${getRoleColor(user.role)} rounded-xl flex items-center justify-center text-white shadow-lg`}>
+                    {getRoleIcon(user.role)}
+                  </div>
                 </div>
-                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center text-slate-700">
-                  {getRoleIcon(user.role)}
-                </div>
+                
+                {/* Status Indicator */}
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full border-4 border-white shadow-lg animate-pulse"></div>
               </div>
 
-              {/* User Info */}
-              <div className="text-center sm:text-left">
-                <h1 className="text-3xl font-bold text-white mb-2">{user.name}</h1>
-                <div className="flex flex-col sm:flex-row gap-3 items-center">
-                  <span className="bg-white/20 px-4 py-2 rounded-full text-white font-semibold text-sm backdrop-blur-sm">
+              {/* User Information */}
+              <div className="flex-1 text-center lg:text-left">
+                <div className="mb-4">
+                  <h1 className="text-4xl md:text-5xl font-bold text-black mb-2">
+                    {user.name}
+                  </h1>
+                  <p className="text-xl text-black font-bold">{user.email}</p>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row gap-4 items-center lg:items-start lg:justify-start justify-center mb-6">
+                  <span className={`inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r ${getRoleColor(user.role)} text-white rounded-full font-semibold shadow-lg`}>
+                    {getRoleIcon(user.role)}
                     {user.role?.toUpperCase()}
                   </span>
-                  <span className="text-white/90 font-medium">{user.email}</span>
+                  
+                  {user.department && (
+                    <span className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-full font-bold shadow-lg">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2-2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1" />
+                      </svg>
+                      {user.department}
+                    </span>
+                  )}
                 </div>
-                {user.department && (
-                  <p className="text-white/80 mt-2 font-medium">📍 {user.department}</p>
+
+                {/* Expertise Tags */}
+                {user.expertise && user.expertise.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-bold text-black mb-3 uppercase tracking-wide">Areas of Expertise</h3>
+                    <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
+                      {user.expertise.slice(0, 5).map((exp, index) => (
+                        <span
+                          key={index}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold border border-blue-700 hover:bg-blue-700 transition-colors shadow-md"
+                        >
+                          {exp}
+                        </span>
+                      ))}
+                      {user.expertise.length > 5 && (
+                        <span className="px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-bold shadow-md">
+                          +{user.expertise.length - 5} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
 
-              {/* Edit Button */}
-              <div className="ml-auto">
+              {/* Action Button */}
+              <div className="flex flex-col gap-4">
                 <button
-                  onClick={() => setIsEditing(!isEditing)}
-                  className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 backdrop-blur-sm border border-white/30 hover:scale-105"
+                  type="button"
+                  onClick={() => {
+                    console.log('Edit button clicked, current isEditing:', isEditing);
+                    setIsEditing(!isEditing);
+                    if (!isEditing) {
+                      // Reset message when entering edit mode
+                      setMessage({ type: "", text: "" });
+                    }
+                  }}
+                  className={`px-8 py-4 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg ${
+                    isEditing 
+                      ? 'bg-blue-100 text-blue-800 hover:bg-blue-200 border-2 border-blue-300' 
+                      : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 border-2 border-transparent'
+                  }`}
+                  disabled={updateLoading}
                 >
-                  {isEditing ? "Cancel" : "Edit Profile"}
+                  {updateLoading ? "Processing..." : (isEditing ? "Cancel Edit" : "Edit Profile")}
                 </button>
+                
+                <div className="text-center text-sm text-black font-bold">
+                  Member since {user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'N/A'}
+                </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Message Display */}
-        {message.text && (
-          <div className={`mb-6 p-4 rounded-lg border ${
+      {/* Message Display */}
+      {message.text && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-4 mb-8">
+          <div className={`p-4 rounded-2xl shadow-lg ${
             message.type === 'success' 
-              ? 'bg-green-50 border-green-200 text-green-800' 
-              : 'bg-red-50 border-red-200 text-red-800'
+              ? 'bg-green-50 border-2 border-green-200 text-green-800' 
+              : 'bg-red-50 border-2 border-red-200 text-red-800'
           }`}>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {message.type === 'success' ? (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
               ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
               )}
-              {message.text}
+              <span className="font-semibold">{message.text}</span>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Profile Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Profile Form */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-xl p-6">
-              <h2 className="text-2xl font-bold text-slate-800 mb-6">Profile Information</h2>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+          {/* Profile Form - Main Content */}
+          <div className="xl:col-span-3">
+            <div className="bg-white rounded-3xl shadow-xl border border-blue-200 p-8">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <h2 className="text-3xl font-bold text-black">Profile Information</h2>
+              </div>
               
               {isEditing ? (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Full Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                      required
-                    />
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-bold text-black uppercase tracking-wide">Full Name</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-4 border-2 border-blue-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 text-black font-bold"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-bold text-black uppercase tracking-wide">Email Address</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-4 border-2 border-blue-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 text-black font-bold"
+                        required
+                      />
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Email Address</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Department</label>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-bold text-black uppercase tracking-wide">Department</label>
                     <input
                       type="text"
                       name="department"
                       value={formData.department}
                       onChange={handleInputChange}
-                      placeholder="e.g., Computer Science, Engineering"
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                      placeholder="e.g., Computer Science, Mechanical Engineering"
+                      className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 text-gray-900 font-bold"
                     />
                   </div>
 
-                  {/* Expertise Section */}
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Areas of Expertise</label>
-                    <div className="flex gap-2 mb-3">
+                  {/* Enhanced Expertise Section */}
+                  <div className="space-y-4">
+                    <label className="block text-sm font-bold text-gray-900 uppercase tracking-wide">Areas of Expertise</label>
+                    <div className="flex gap-3">
                       <input
                         type="text"
                         value={newExpertise}
                         onChange={(e) => setNewExpertise(e.target.value)}
-                        placeholder="Add new expertise area"
-                        className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm"
+                        placeholder="Add your expertise area..."
+                        className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 text-gray-900 font-bold"
                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addExpertise())}
                       />
                       <button
                         type="button"
                         onClick={addExpertise}
-                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors text-sm"
+                        className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
                       >
                         Add
                       </button>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {formData.expertise.map((exp, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
-                        >
-                          {exp}
-                          <button
-                            type="button"
-                            onClick={() => removeExpertise(exp)}
-                            className="ml-1 hover:text-red-600 transition-colors"
-                          >
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </span>
-                      ))}
-                    </div>
+                    
+                    {formData.expertise.length > 0 && (
+                      <div className="space-y-3">
+                        <h4 className="text-sm font-bold text-gray-900">Current Expertise Areas:</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {formData.expertise.map((exp, index) => (
+                            <div
+                              key={index}
+                              className="inline-flex items-center justify-between gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 text-blue-800 px-4 py-3 rounded-xl font-medium group hover:from-blue-100 hover:to-indigo-100 transition-all duration-300"
+                            >
+                              <span className="flex-1">{exp}</span>
+                              <button
+                                type="button"
+                                onClick={() => removeExpertise(exp)}
+                                className="w-6 h-6 bg-red-100 hover:bg-red-500 text-red-600 hover:text-white rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex gap-4 pt-4">
+                  <div className="flex flex-col sm:flex-row gap-4 pt-6">
                     <button
                       type="submit"
                       disabled={updateLoading}
-                      className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 rounded-lg font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
                     >
-                      {updateLoading ? "Updating..." : "Save Changes"}
+                      {updateLoading ? (
+                        <>
+                          <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Saving Changes...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Save Changes
+                        </>
+                      )}
                     </button>
                     <button
                       type="button"
-                      onClick={() => setIsEditing(false)}
-                      className="px-6 py-3 border border-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-50 transition-colors"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setMessage({ type: "", text: "" });
+                      }}
+                      disabled={updateLoading}
+                      className="px-8 py-4 border-2 border-gray-800 text-gray-900 bg-white rounded-xl font-bold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Cancel
                     </button>
                   </div>
                 </form>
               ) : (
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-500 mb-1">Full Name</label>
-                    <p className="text-lg text-slate-800 font-medium">{user.name}</p>
-                  </div>
+                <div className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-bold text-gray-900 uppercase tracking-wide">Full Name</label>
+                      <p className="text-2xl text-black font-bold bg-white/50 p-2 rounded">{user.name}</p>
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-500 mb-1">Email Address</label>
-                    <p className="text-lg text-slate-800">{user.email}</p>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-bold text-gray-900 uppercase tracking-wide">Email Address</label>
+                      <p className="text-xl text-black font-bold bg-white/50 p-2 rounded">{user.email}</p>
+                    </div>
                   </div>
 
                   {user.department && (
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-500 mb-1">Department</label>
-                      <p className="text-lg text-slate-800">{user.department}</p>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-bold text-gray-900 uppercase tracking-wide">Department</label>
+                      <p className="text-xl text-black font-bold bg-white/50 p-2 rounded">{user.department}</p>
                     </div>
                   )}
 
                   {user.expertise && user.expertise.length > 0 && (
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-500 mb-2">Areas of Expertise</label>
-                      <div className="flex flex-wrap gap-2">
+                    <div className="space-y-4">
+                      <label className="block text-sm font-bold text-gray-900 uppercase tracking-wide">Areas of Expertise</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         {user.expertise.map((exp, index) => (
-                          <span
+                          <div
                             key={index}
-                            className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
+                            className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 text-blue-900 px-4 py-3 rounded-xl font-bold text-center"
                           >
                             {exp}
-                          </span>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -371,75 +505,135 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Profile Stats/Info Sidebar */}
-          <div className="space-y-6">
-            {/* Account Info */}
-            <div className="bg-white rounded-2xl shadow-xl p-6">
-              <h3 className="text-lg font-bold text-slate-800 mb-4">Account Information</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-slate-600">Role</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r ${getRoleColor(user.role)} text-white`}>
+          {/* Enhanced Sidebar */}
+          <div className="xl:col-span-1 space-y-6">
+            {/* Account Status Card */}
+            <div className="bg-white rounded-3xl shadow-xl border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center text-white">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Account Status</h3>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200">
+                  <span className="text-gray-900 font-bold">Status</span>
+                  <span className="inline-flex items-center gap-2 text-green-700 font-bold">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    Active
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200">
+                  <span className="text-gray-900 font-bold">Role</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getRoleColor(user.role)}`}>
                     {user.role?.toUpperCase()}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-600">Status</span>
-                  <span className="text-green-600 font-semibold">Active</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-600">Joined</span>
-                  <span className="text-slate-800">
+                
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200">
+                  <span className="text-gray-900 font-bold">Member Since</span>
+                  <span className="text-gray-900 font-bold">
                     {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Role-specific Info */}
-            <div className="bg-white rounded-2xl shadow-xl p-6">
-              <h3 className="text-lg font-bold text-slate-800 mb-4">
-                {user.role === 'user' && 'Research Activity'}
-                {user.role === 'reviewer' && 'Review Activity'}
-                {user.role === 'staff' && 'Project Activity'}
-              </h3>
-              <div className="space-y-3 text-sm">
+            {/* Activity Card */}
+            <div className="bg-white rounded-3xl shadow-xl border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className={`w-10 h-10 bg-gradient-to-br ${getRoleColor(user.role)} rounded-xl flex items-center justify-center text-white`}>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  {user.role === 'user' && 'Research Activity'}
+                  {user.role === 'reviewer' && 'Review Activity'}  
+                  {user.role === 'staff' && 'Project Activity'}
+                </h3>
+              </div>
+              
+              <div className="space-y-4">
                 {user.role === 'user' && (
                   <>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Proposals Submitted</span>
-                      <span className="font-semibold text-blue-600">-</span>
+                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-900 font-bold">Proposals Submitted</span>
+                        <span className="text-2xl font-bold text-blue-600">0</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Active Projects</span>
-                      <span className="font-semibold text-green-600">-</span>
+                    <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-900 font-bold">Active Projects</span>
+                        <span className="text-2xl font-bold text-green-600">0</span>
+                      </div>
                     </div>
                   </>
                 )}
                 {user.role === 'reviewer' && (
                   <>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Proposals Reviewed</span>
-                      <span className="font-semibold text-purple-600">-</span>
+                    <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-900 font-bold">Reviews Completed</span>
+                        <span className="text-2xl font-bold text-purple-600">0</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Pending Reviews</span>
-                      <span className="font-semibold text-orange-600">-</span>
+                    <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-900 font-bold">Pending Reviews</span>
+                        <span className="text-2xl font-bold text-orange-600">0</span>
+                      </div>
                     </div>
                   </>
                 )}
                 {user.role === 'staff' && (
                   <>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Assigned Projects</span>
-                      <span className="font-semibold text-green-600">-</span>
+                    <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-900 font-bold">Assigned Projects</span>
+                        <span className="text-2xl font-bold text-emerald-600">0</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Completed Tasks</span>
-                      <span className="font-semibold text-blue-600">-</span>
+                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-900 font-bold">Completed Tasks</span>
+                        <span className="text-2xl font-bold text-blue-600">0</span>
+                      </div>
                     </div>
                   </>
                 )}
+              </div>
+            </div>
+
+            {/* Quick Actions Card */}
+            <div className="bg-white rounded-3xl shadow-xl border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Quick Actions</h3>
+              </div>
+              
+              <div className="space-y-3">
+                <button 
+                  onClick={() => window.location.href = '/dashboard'}
+                  className="w-full p-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105"
+                >
+                  View Dashboard
+                </button>
+                <button 
+                  onClick={() => window.print()}
+                  className="w-full p-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-all duration-300"
+                >
+                  Print Profile
+                </button>
               </div>
             </div>
           </div>

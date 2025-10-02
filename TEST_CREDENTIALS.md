@@ -21,7 +21,7 @@
 
 - **Email:** admin@test.com  
 - **Password:** admin123
-- **Name:** Dr. Admin Reviewer
+- **Name:** Dr. Senior Reviewer
 - **Department:** Administration
 
 ### 👨‍🔬 Research Staff (can view assigned proposals, submit reports)

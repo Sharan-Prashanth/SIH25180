@@ -88,7 +88,7 @@ function TrackProposalContent() {
           <div className="absolute -bottom-20 right-20 w-40 h-40 bg-teal-300/10 rounded-full animate-float animation-delay-2000"></div>
         </div>
 
-        <nav className="relative z-10 px-4 sm:px-6 lg:px-8">
+        <nav className="relative z-10 px-4 sm:px-6 lg:px-8 print:hidden">
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center">
@@ -96,7 +96,7 @@ function TrackProposalContent() {
               </div>
               <button 
                 onClick={() => router.push('/dashboard')}
-                className="group flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl font-semibold transition-all duration-300 hover:scale-105"
+                className="group flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl font-semibold transition-all duration-300 hover:scale-105 print:hidden"
               >
                 <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -221,6 +221,41 @@ function TrackProposalContent() {
           </div>
         </div>
       </main>
+
+      {/* Print-specific styles */}
+      <style jsx global>{`
+        @media print {
+          .print\\:hidden {
+            display: none !important;
+          }
+          
+          body {
+            -webkit-print-color-adjust: exact;
+            color-adjust: exact;
+          }
+          
+          .bg-gradient-to-br,
+          .bg-gradient-to-r {
+            background: white !important;
+            color: black !important;
+          }
+          
+          .text-white {
+            color: black !important;
+          }
+          
+          .shadow-xl,
+          .shadow-lg {
+            box-shadow: none !important;
+            border: 1px solid #e5e7eb !important;
+          }
+          
+          * {
+            color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
+        }
+      `}</style>
     </div>
   );
 }
