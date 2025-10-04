@@ -484,7 +484,7 @@ function CollaborateContent() {
         token: token ? 'Token exists' : 'No token'
       });
       
-      // Here you would typically make an API call to send the invitation
+     
       const response = await fetch('http://localhost:5000/api/invite-collaborator', {
         method: 'POST',
         headers: {
