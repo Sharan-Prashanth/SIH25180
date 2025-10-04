@@ -98,4 +98,85 @@ router.get('/invitations/:proposalId', protect, async (req, res) => {
   }
 });
 
+// @desc    Send collaboration invitation (Alternative endpoint)
+// @route   POST /api/invite-collaborator
+// @access  Private
+router.post('/invite-collaborator', protect, async (req, res) => {
+  console.log('📧 Collaboration invitation request received');
+  console.log('Request body:', req.body);
+  console.log('User from auth:', req.user);
+  
+  try {
+    const { proposalId, email, role, description, inviteType, platform } = req.body;
+
+    // Validate required fields
+    if (!email || !role) {
+      console.log('❌ Missing required fields');
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: email, role'
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      console.log('❌ Invalid email format');
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format'
+      });
+    }
+
+    console.log('✅ Validation passed, sending email...');
+
+    // For now, we'll use a default proposal title since we don't have the full proposal data
+    const proposalTitle = "Research Collaboration Proposal";
+    const inviterName = req.user?.name || 'NaCCER Team';
+
+    console.log('Email details:', {
+      to: email,
+      proposalTitle,
+      proposalId,
+      inviterName,
+      role,
+      description
+    });
+
+    // Send collaboration invitation email
+    const emailResult = await emailService.sendCollaborationInviteEmail(
+      email,
+      proposalTitle,
+      proposalId,
+      inviterName,
+      role,
+      description || `You have been invited to collaborate as a ${role}.`
+    );
+
+    if (emailResult.success) {
+      console.log(`📧 ✅ Collaboration invitation sent to ${email} for proposal ${proposalId} as ${role}`);
+      res.status(200).json({
+        success: true,
+        message: `Collaboration invitation sent successfully to ${email} as ${role}`,
+        emailId: emailResult.messageId,
+        mode: emailResult.mode
+      });
+    } else {
+      console.error(`❌ Failed to send collaboration invitation to ${email}:`, emailResult.error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send collaboration invitation',
+        error: emailResult.error
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error in collaboration invitation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while sending collaboration invitation',
+      error: error.message
+    });
+  }
+});
+
 export default router;

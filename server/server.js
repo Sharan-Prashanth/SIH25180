@@ -77,6 +77,9 @@ app.use("/api/proposals", proposalRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/collaboration", collaborationRoutes);
 
+// Direct collaboration invite route (for frontend compatibility)
+app.use("/api", collaborationRoutes);
+
 // Global error handler
 app.use(errorHandler);
 

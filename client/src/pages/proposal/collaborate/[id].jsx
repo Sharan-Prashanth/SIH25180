@@ -473,11 +473,23 @@ function CollaborateContent() {
     
     setIsInviting(true);
     try {
+      // Get auth token from localStorage
+      const token = localStorage.getItem('token');
+      
+      console.log('Sending invitation with data:', {
+        email: collaboratorEmail,
+        role: collaboratorRole,
+        description: collaboratorDescription,
+        proposalId: id,
+        token: token ? 'Token exists' : 'No token'
+      });
+      
       // Here you would typically make an API call to send the invitation
-      const response = await fetch('/api/invite-collaborator', {
+      const response = await fetch('http://localhost:5000/api/invite-collaborator', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           email: collaboratorEmail,
@@ -489,6 +501,12 @@ function CollaborateContent() {
         }),
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
+      const responseData = await response.json();
+      console.log('Response data:', responseData);
+
       if (response.ok) {
         alert(`Collaboration invitation sent to ${collaboratorEmail} as ${collaboratorRole}!`);
         setCollaboratorEmail('');
@@ -496,11 +514,23 @@ function CollaborateContent() {
         setCollaboratorDescription('');
         setShowCollaborateModal(false);
       } else {
-        throw new Error('Failed to send invitation');
+        throw new Error(responseData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
-      console.error('Error sending invitation:', error);
-      alert('Failed to send invitation. Please try again.');
+      console.error('Detailed error sending invitation:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      
+      // More specific error messages
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        alert('Failed to connect to server. Please check if the backend server is running on port 5000.');
+      } else if (error.message.includes('401')) {
+        alert('Authentication failed. Please log in again.');
+      } else if (error.message.includes('400')) {
+        alert('Invalid request data. Please check your input.');
+      } else {
+        alert(`Failed to send invitation: ${error.message}`);
+      }
     } finally {
       setIsInviting(false);
     }
