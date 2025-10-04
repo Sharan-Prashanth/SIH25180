@@ -9,6 +9,7 @@ export default function Home() {
   const [showCollaborateModal, setShowCollaborateModal] = useState(false);
   const [collaboratorEmail, setCollaboratorEmail] = useState('');
   const [isInviting, setIsInviting] = useState(false);
+  const [visionMissionVisible, setVisionMissionVisible] = useState(false);
 
   // Array of banner images
   const bannerImages = [
@@ -28,6 +29,34 @@ export default function Home() {
 
     return () => clearInterval(interval);
   }, [bannerImages.length]);
+
+  // Intersection Observer for Vision & Mission section
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVisionMissionVisible(true);
+          }
+        });
+      },
+      {
+        threshold: 0.3, // Trigger when 30% of the section is visible
+        rootMargin: '0px 0px -100px 0px' // Start animation slightly before the section is fully visible
+      }
+    );
+
+    const visionMissionSection = document.getElementById('vision-mission-section');
+    if (visionMissionSection) {
+      observer.observe(visionMissionSection);
+    }
+
+    return () => {
+      if (visionMissionSection) {
+        observer.unobserve(visionMissionSection);
+      }
+    };
+  }, []);
 
   // Navigate to previous image
   const goToPrevious = () => {
@@ -611,38 +640,51 @@ export default function Home() {
       </section>
 
       {/* Vision & Mission Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
+      <section id="vision-mission-section" className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className={`grid md:grid-cols-2 gap-8 transition-all duration-1000 ease-out ${
+            visionMissionVisible 
+              ? 'opacity-100 transform translate-y-0' 
+              : 'opacity-0 transform translate-y-12'
+          }`}>
             {/* Vision Box */}
-            <div className="vision-mission-box group relative bg-white rounded-lg shadow-lg border border-gray-200 p-8 hover:shadow-xl transition-all duration-700 cursor-pointer overflow-hidden h-64 hover:h-auto">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+            <div className={`vision-mission-box group relative bg-white rounded-xl shadow-lg border border-gray-200 p-8 hover:shadow-2xl transition-all duration-1000 ease-out cursor-pointer overflow-hidden h-64 hover:h-auto transform hover:scale-105 hover:-translate-y-2 ${
+              visionMissionVisible 
+                ? 'animate-[fadeInUp_0.8s_ease-out_0.2s_both]' 
+                : ''
+            }`}>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-650 to-blue-700 opacity-0 group-hover:opacity-100 transition-all duration-1000 ease-out"></div>
+              
+              {/* Animated background pattern */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-all duration-1000 ease-out">
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-transparent via-white/5 to-transparent animate-pulse"></div>
+              </div>
               
               <div className="relative z-10 h-full flex flex-col">
-                <div className="flex items-center justify-center h-full w-full px-4 py-8 group-hover:h-auto group-hover:justify-start group-hover:mb-6 group-hover:px-0 group-hover:py-0 transition-all duration-700">
-                  <h2 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800 group-hover:text-white group-hover:text-3xl group-hover:bg-none transition-all duration-700 text-center tracking-wider leading-none">
+                <div className="flex items-center justify-center h-full w-full px-4 py-8 group-hover:h-auto group-hover:justify-start group-hover:mb-6 group-hover:px-0 group-hover:py-0 transition-all duration-1000 ease-out">
+                  <h2 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800 group-hover:text-white group-hover:text-3xl group-hover:bg-none transition-all duration-1000 ease-out text-center tracking-wider leading-none transform group-hover:scale-110">
                     VISION
                   </h2>
                 </div>
                 
-                <div className="space-y-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-200 overflow-hidden">
-                  <p className="text-lg font-semibold text-white">
+                <div className="space-y-4 opacity-0 group-hover:opacity-100 transition-all duration-1000 ease-out delay-300 overflow-hidden transform translate-y-4 group-hover:translate-y-0">
+                  <p className="text-lg font-semibold text-white transform translate-x-4 group-hover:translate-x-0 transition-all duration-800 ease-out delay-400">
                     To Secure availability of Coal to meet the demand of various sectors of the economy in a eco-friendly, sustainable and cost effective manner.
                   </p>
                   
-                  <div className="text-gray-100">
+                  <div className="text-gray-100 transform translate-x-6 group-hover:translate-x-0 transition-all duration-900 ease-out delay-500">
                     <p className="font-medium mb-3 text-white">Ministry of Coal is committed to:</p>
                     <ul className="space-y-2 text-sm">
-                      <li className="flex items-start">
-                        <span className="w-2 h-2 bg-white rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      <li className="flex items-start stagger-1">
+                        <span className="w-2 h-2 bg-white rounded-full mt-2 mr-3 flex-shrink-0 animate-pulse"></span>
                         <span className="text-gray-100">Augment production through Government companies as well as captive mining route by adopting state-of-the-art and clean coal technologies with a view to improve productivity, safety, quality and ecology.</span>
                       </li>
-                      <li className="flex items-start">
-                        <span className="w-2 h-2 bg-white rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      <li className="flex items-start stagger-2">
+                        <span className="w-2 h-2 bg-white rounded-full mt-2 mr-3 flex-shrink-0 animate-pulse"></span>
                         <span className="text-gray-100">Augment the resource base by enhancing exploration efforts with thrust on increasing proved resources.</span>
                       </li>
-                      <li className="flex items-start">
-                        <span className="w-2 h-2 bg-white rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      <li className="flex items-start stagger-3">
+                        <span className="w-2 h-2 bg-white rounded-full mt-2 mr-3 flex-shrink-0 animate-pulse"></span>
                         <span className="text-gray-100">Facilitate development of necessary infrastructure for prompt evacuation of coal.</span>
                       </li>
                     </ul>
@@ -652,35 +694,44 @@ export default function Home() {
             </div>
 
             {/* Mission Box */}
-            <div className="vision-mission-box group relative bg-white rounded-lg shadow-lg border border-gray-200 p-8 hover:shadow-xl transition-all duration-700 cursor-pointer overflow-hidden h-64 hover:h-auto">
-              <div className="absolute inset-0 bg-gradient-to-br from-green-600 to-green-700 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+            <div className={`vision-mission-box group relative bg-white rounded-xl shadow-lg border border-gray-200 p-8 hover:shadow-2xl transition-all duration-1000 ease-out cursor-pointer overflow-hidden h-64 hover:h-auto transform hover:scale-105 hover:-translate-y-2 ${
+              visionMissionVisible 
+                ? 'animate-[fadeInUp_0.8s_ease-out_0.4s_both]' 
+                : ''
+            }`}>
+              <div className="absolute inset-0 bg-gradient-to-br from-green-600 via-green-650 to-green-700 opacity-0 group-hover:opacity-100 transition-all duration-1000 ease-out"></div>
+              
+              {/* Animated background pattern */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-all duration-1000 ease-out">
+                <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-transparent via-white/5 to-transparent animate-pulse"></div>
+              </div>
               
               <div className="relative z-10 h-full flex flex-col">
-                <div className="flex items-center justify-center h-full w-full px-4 py-8 group-hover:h-auto group-hover:justify-start group-hover:mb-6 group-hover:px-0 group-hover:py-0 transition-all duration-700">
-                  <h2 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-green-800 group-hover:text-white group-hover:text-3xl group-hover:bg-none transition-all duration-700 text-center tracking-wider leading-none">
+                <div className="flex items-center justify-center h-full w-full px-4 py-8 group-hover:h-auto group-hover:justify-start group-hover:mb-6 group-hover:px-0 group-hover:py-0 transition-all duration-1000 ease-out">
+                  <h2 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-green-800 group-hover:text-white group-hover:text-3xl group-hover:bg-none transition-all duration-1000 ease-out text-center tracking-wider leading-none transform group-hover:scale-110">
                     MISSION
                   </h2>
                 </div>
                 
-                <div className="space-y-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-200 overflow-hidden">
-                  <div className="text-gray-100">
+                <div className="space-y-4 opacity-0 group-hover:opacity-100 transition-all duration-1000 ease-out delay-300 overflow-hidden transform translate-y-4 group-hover:translate-y-0">
+                  <div className="text-gray-100 transform translate-x-6 group-hover:translate-x-0 transition-all duration-900 ease-out delay-400">
                     <ul className="space-y-3">
-                      <li className="flex items-start">
-                        <span className="w-2 h-2 bg-white rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      <li className="flex items-start stagger-1">
+                        <span className="w-2 h-2 bg-white rounded-full mt-2 mr-3 flex-shrink-0 animate-pulse"></span>
                         <span className="text-sm text-gray-100">To augment production through Government companies as well as captive mining route by adopting state-of-the-art and clean coal technologies with a view to improve productivity, safety, quality and ecology.</span>
                       </li>
-                      <li className="flex items-start">
-                        <span className="w-2 h-2 bg-white rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      <li className="flex items-start stagger-2">
+                        <span className="w-2 h-2 bg-white rounded-full mt-2 mr-3 flex-shrink-0 animate-pulse"></span>
                         <span className="text-sm text-gray-100">To augment the resource base by enhancing exploration efforts with thrust on increasing proved resources.</span>
                       </li>
-                      <li className="flex items-start">
-                        <span className="w-2 h-2 bg-white rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      <li className="flex items-start stagger-3">
+                        <span className="w-2 h-2 bg-white rounded-full mt-2 mr-3 flex-shrink-0 animate-pulse"></span>
                         <span className="text-sm text-gray-100">To facilitate development of necessary infrastructure for prompt evacuation of coal.</span>
                       </li>
                     </ul>
                   </div>
                   
-                  <div className="mt-6 p-4 bg-white/10 rounded-lg">
+                  <div className="mt-6 p-4 bg-white/10 rounded-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-800 ease-out delay-800 backdrop-blur-sm">
                     <p className="text-sm text-gray-200 font-medium">
                       Driving sustainable development in India's coal sector through innovation, technology, and environmental stewardship.
                     </p>
