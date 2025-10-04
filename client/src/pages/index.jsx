@@ -422,23 +422,7 @@ export default function Home() {
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-center text-white mb-8 animate-fade-in-up border-b-4 border-yellow-500 pb-4 inline-block">Our Ministers</h2>
             
-            {/* Collaborate Button - Prominently Displayed */}
-            <div className="flex justify-center mt-8 mb-8">
-              <button 
-                onClick={() => setShowCollaborateModal(true)}
-                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-2xl hover:shadow-green-500/25 transform hover:scale-110 flex items-center gap-3 border-2 border-green-400 hover:border-green-300 animate-pulse-gentle"
-              >
-                <div className="bg-white rounded-full p-2 shadow-lg">
-                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
-                  </svg>
-                </div>
-                <span className="font-extrabold text-xl tracking-wide">ADD COLLABORATOR</span>
-                <div className="bg-white/20 rounded-full px-3 py-1">
-                  <span className="text-sm font-semibold">INVITE</span>
-                </div>
-              </button>
-            </div>
+          
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
