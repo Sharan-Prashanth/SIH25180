@@ -37,6 +37,9 @@ const AnimatedCounter = ({ targetValue, duration = 2000 }) => {
   return <span>{count}</span>;
 };
 
+// Team : ByteSpace 
+// SIH Team ID : 72110
+
 function DashboardContent() {
   const { user, logout, isUser, isReviewer, isStaff } = useAuth();
   const [proposals, setProposals] = useState([]);
